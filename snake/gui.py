@@ -1,10 +1,14 @@
-from pyglet.app import run as pyglet_run
+from os.path import join
+from pyglet.app import run
+from pyglet.image import load
+from pyglet.sprite import Sprite
 from pyglet.window import Window
 
 
-__all__ = ['run']
+__all__ = ['init']
 
 _TILE_SIZE = (64, 64)
+_SNAKE_IMAGE = join('resources', 'green.png')
 
 
 def _window_size(board_size, tile_size):
@@ -18,6 +22,20 @@ def _window(board_size):
     return Window(window_width, window_height)
 
 
-def run(board_size):
-    _window(board_size)
-    pyglet_run()
+def _sprite(image):
+    return Sprite(load(image))
+
+
+def _draw_factory(window, snake_sprite):
+    def draw():
+        window.clear()
+        snake_sprite.draw()
+    return draw
+
+
+def init(board_size):
+    window = _window(board_size)
+    snake_sprite = _sprite(_SNAKE_IMAGE)
+    draw = _draw_factory(window, snake_sprite)
+    window.push_handlers(on_draw=draw)
+    run()
