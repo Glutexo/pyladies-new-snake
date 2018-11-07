@@ -3,7 +3,7 @@ from snake.logic import initial_snake_pos
 
 __all__ = ['run']
 
-_BOARD_SIZE = (8, 8)
+_BOARD_SIZE = (9, 9)
 
 
 def run():
