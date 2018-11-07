@@ -1,5 +1,5 @@
-from collections import namedtuple
 from os.path import join
+from snake.utils import struct
 from pyglet.app import run
 from pyglet.image import load
 from pyglet.sprite import Sprite
@@ -23,11 +23,6 @@ in_pixels = in_pixels_factory(_TILE_SIZE)
 del in_pixels_factory, _TILE_SIZE
 
 
-CreateWindowFactoryFunctions = namedtuple('CreateWindowFactoryFunction', ('in_pixels', 'window'))
-create_window_factory_functions = CreateWindowFactoryFunctions(in_pixels, Window)
-del CreateWindowFactoryFunctions, Window
-
-
 def create_window_factory(functions):
     def create_window(board_size):
         window_width, window_height = functions.in_pixels(board_size)
@@ -35,13 +30,10 @@ def create_window_factory(functions):
     return create_window
 
 
+create_window_factory_functions = struct('create_window_factory_functions', in_pixels=in_pixels, window=Window)
+del Window
 create_window = create_window_factory(create_window_factory_functions)
 del create_window_factory, create_window_factory_functions
-
-
-CreateSpriteFactoryFunctions = namedtuple('CreateSpriteFactoryFunctions', ('sprite',))
-create_sprite_factory_functions = CreateSpriteFactoryFunctions(Sprite)
-del CreateSpriteFactoryFunctions, Sprite
 
 
 def create_sprite_factory_factory(functions):
@@ -52,8 +44,10 @@ def create_sprite_factory_factory(functions):
     return create_sprite_factory
 
 
+create_sprite_factory_functions = struct('create_sprite_factory_functions', sprite=Sprite)
+del Sprite
 create_sprite_factory = create_sprite_factory_factory(create_sprite_factory_functions)
-del create_sprite_factory_factory
+del create_sprite_factory_factory, create_sprite_factory_functions
 
 
 def draw_factory(window, sprite):
@@ -79,11 +73,7 @@ def init_factory(snake_image_file, functions):
     return init
 
 
-InitFunctions = namedtuple('InitFunctions', ('create_window', 'load', 'create_sprite_factory', 'in_pixels', 'draw_factory', 'run'))
-del namedtuple
-init_functions = InitFunctions(create_window, load, create_sprite_factory, in_pixels, draw_factory, run)
-del InitFunctions, create_window, load, create_sprite_factory, in_pixels, draw_factory, run
-
-
+init_functions = struct('init_functions', create_window=create_window, load=load, create_sprite_factory=create_sprite_factory, in_pixels=in_pixels, draw_factory=draw_factory, run=run)
+del create_window, load, create_sprite_factory, in_pixels, draw_factory, run, struct
 init = init_factory(_SNAKE_IMAGE, init_functions)
 del init_factory, _SNAKE_IMAGE, init_functions
