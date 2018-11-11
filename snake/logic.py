@@ -1,7 +1,7 @@
 from math import floor
 
 
-__all__ = ['initial_snake_pos']
+__all__ = ['initial_snake']
 
 
 def _center(dimension):
@@ -13,5 +13,5 @@ def _board_center(board_size):
     return _center(board_size[0]), _center(board_size[1])
 
 
-def initial_snake_pos(board_size):
-    return _board_center(board_size)
+def initial_snake(board_size):
+    return (_board_center(board_size),)

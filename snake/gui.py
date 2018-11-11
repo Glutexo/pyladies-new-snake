@@ -45,28 +45,42 @@ create_sprite_factory = create_sprite_factory_factory(Sprite)
 del create_sprite_factory_factory, Sprite
 
 
-def draw_factory(window, sprite):
+def pos_to_sprite_factory(in_pixels):
+    def pos_to_sprite(create_sprite):
+        def pos_to_sprite(pos):
+            x, y = in_pixels(pos)
+            return create_sprite(x=x, y=y)
+        return pos_to_sprite
+    return pos_to_sprite
+
+
+pos_to_sprite = pos_to_sprite_factory(in_pixels)
+del pos_to_sprite_factory, in_pixels
+
+
+def draw_factory(window, sprites):
     def draw():
         window.clear()
-        sprite.draw()
+        for sprite in sprites:
+            sprite.draw()
     return draw
 
 
-def init_factory(snake_image_file, create_window, load, create_sprite_factory, in_pixels, draw_factory, run):
-    def init(board_size, snake_pos):
+def init_factory(snake_image_file, create_window, load, create_sprite_factory, pos_to_sprite, draw_factory, run):
+    def init(board_size, snake):
         window = create_window(board_size)
 
         snake_image_resource = load(snake_image_file)
         create_snake_sprite = create_sprite_factory(snake_image_resource)
-        x, y = in_pixels(snake_pos)
-        snake_sprite = create_snake_sprite(x=x, y=y)
+        pos_to_snake_sprite = pos_to_sprite(create_snake_sprite)
+        snake_sprites = set(map(pos_to_snake_sprite, snake))
 
-        draw = draw_factory(window, snake_sprite)
+        draw = draw_factory(window, snake_sprites)
         window.push_handlers(on_draw=draw)
 
         run()
     return init
 
 
-init = init_factory(_SNAKE_IMAGE, create_window, load, create_sprite_factory, in_pixels, draw_factory, run)
-del init_factory, _SNAKE_IMAGE, create_window, load, create_sprite_factory, in_pixels, draw_factory, run
+init = init_factory(_SNAKE_IMAGE, create_window, load, create_sprite_factory, pos_to_sprite, draw_factory, run)
+del init_factory, _SNAKE_IMAGE, create_window, load, create_sprite_factory, pos_to_sprite, draw_factory, run
