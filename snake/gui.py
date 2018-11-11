@@ -1,5 +1,4 @@
 from os.path import join
-from snake.utils import struct
 from pyglet.app import run
 from pyglet.image import load
 from pyglet.sprite import Sprite
@@ -23,31 +22,27 @@ in_pixels = in_pixels_factory(_TILE_SIZE)
 del in_pixels_factory, _TILE_SIZE
 
 
-def create_window_factory(functions):
+def create_window_factory(in_pixels, window):
     def create_window(board_size):
-        window_width, window_height = functions.in_pixels(board_size)
-        return functions.window(window_width, window_height)
+        window_width, window_height = in_pixels(board_size)
+        return window(window_width, window_height)
     return create_window
 
 
-create_window_factory_functions = struct('create_window_factory_functions', in_pixels=in_pixels, window=Window)
-del Window
-create_window = create_window_factory(create_window_factory_functions)
-del create_window_factory, create_window_factory_functions
+create_window = create_window_factory(in_pixels, Window)
+del create_window_factory, Window
 
 
-def create_sprite_factory_factory(functions):
+def create_sprite_factory_factory(sprite):
     def create_sprite_factory(image):
         def create_sprite(*args, **kwargs):
-            return functions.sprite(image, *args, **kwargs)
+            return sprite(image, *args, **kwargs)
         return create_sprite
     return create_sprite_factory
 
 
-create_sprite_factory_functions = struct('create_sprite_factory_functions', sprite=Sprite)
-del Sprite
-create_sprite_factory = create_sprite_factory_factory(create_sprite_factory_functions)
-del create_sprite_factory_factory, create_sprite_factory_functions
+create_sprite_factory = create_sprite_factory_factory(Sprite)
+del create_sprite_factory_factory, Sprite
 
 
 def draw_factory(window, sprite):
@@ -57,23 +52,21 @@ def draw_factory(window, sprite):
     return draw
 
 
-def init_factory(snake_image_file, functions):
+def init_factory(snake_image_file, create_window, load, create_sprite_factory, in_pixels, draw_factory, run):
     def init(board_size, snake_pos):
-        window = functions.create_window(board_size)
+        window = create_window(board_size)
 
-        snake_image_resource = functions.load(snake_image_file)
-        create_snake_sprite = functions.create_sprite_factory(snake_image_resource)
-        x, y = functions.in_pixels(snake_pos)
+        snake_image_resource = load(snake_image_file)
+        create_snake_sprite = create_sprite_factory(snake_image_resource)
+        x, y = in_pixels(snake_pos)
         snake_sprite = create_snake_sprite(x=x, y=y)
 
-        draw = functions.draw_factory(window, snake_sprite)
+        draw = draw_factory(window, snake_sprite)
         window.push_handlers(on_draw=draw)
 
-        functions.run()
+        run()
     return init
 
 
-init_functions = struct('init_functions', create_window=create_window, load=load, create_sprite_factory=create_sprite_factory, in_pixels=in_pixels, draw_factory=draw_factory, run=run)
-del create_window, load, create_sprite_factory, in_pixels, draw_factory, run, struct
-init = init_factory(_SNAKE_IMAGE, init_functions)
-del init_factory, _SNAKE_IMAGE, init_functions
+init = init_factory(_SNAKE_IMAGE, create_window, load, create_sprite_factory, in_pixels, draw_factory, run)
+del init_factory, _SNAKE_IMAGE, create_window, load, create_sprite_factory, in_pixels, draw_factory, run
