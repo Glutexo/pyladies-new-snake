@@ -1,8 +1,8 @@
-from pyglet.app import run as pyglet_run
+from pyglet.app import run
 from pyglet.window import Window
 
 
-__all__ = ['run']
+__all__ = ['init']
 
 _TILE_SIZE = (64, 64)
 
@@ -18,6 +18,6 @@ def _window(board_size):
     return Window(window_width, window_height)
 
 
-def run(board_size):
+def init(board_size):
     _window(board_size)
-    pyglet_run()
+    run()
