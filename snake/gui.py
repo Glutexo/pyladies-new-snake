@@ -1,5 +1,6 @@
 from os.path import join
 from pyglet.app import run
+from pyglet.clock import schedule_interval
 from pyglet.image import load
 from pyglet.sprite import Sprite
 from pyglet.window import Window
@@ -30,18 +31,32 @@ def sprite(image, pos):
     return Sprite(image, x=x, y=y)
 
 
-def init(board_size, state):
+def init(board_size, state, tick):
+    def snake_to_sprites(snake):
+        for pos in snake:
+            s = sprite(snake_image, pos)
+            sprites.add(s)
+
     def draw():
         window.clear()
         for sprite in sprites:
             sprite.draw()
 
+    def interval(dt):
+        tick(state)
+
+        for sprite in list(sprites):
+            sprite.delete()
+            sprites.remove(sprite)
+
+        snake_to_sprites(state.snake)
+
     snake_image = load(_SNAKE_IMAGE)
-    for snake_pos in state.snake:
-        snake_sprite = sprite(snake_image, snake_pos)
-        sprites.add(snake_sprite)
+    snake_to_sprites(state.snake)
 
     window = _window(board_size)
     window.push_handlers(on_draw=draw)
+
+    schedule_interval(interval, 1)
 
     run()
