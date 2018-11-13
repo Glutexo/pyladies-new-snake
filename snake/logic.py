@@ -24,6 +24,16 @@ def _move(pos, direction):
     return pos[0] + direction[0], pos[1] + direction[1]
 
 
+def _snake_head(snake):
+    return snake[0]
+
+
+def _move_snake(state):
+    old_snake_head = _snake_head(state.snake)
+    new_snake_head = _move(old_snake_head, state.direction)
+    state.snake = [new_snake_head] + state.snake[:-1]
+
+
 def initial_state(board_size):
     return State(snake=_initial_snake(board_size), direction=_initial_direction)
 
@@ -33,6 +43,4 @@ def turn(state, direction):
 
 
 def tick(state):
-    old_snake_pos = state.snake[0]
-    new_snake_pos = _move(old_snake_pos, state.direction)
-    state.snake = [new_snake_pos]
+    _move_snake(state)
