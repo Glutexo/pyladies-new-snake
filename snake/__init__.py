@@ -1,7 +1,7 @@
 from snake.gui import init
 from snake.logic import initial_snake_pos
 
-__all__ = ['run']
+__all__ = ["run"]
 
 _BOARD_SIZE = (9, 9)
 

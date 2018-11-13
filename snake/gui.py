@@ -5,7 +5,7 @@ from pyglet.sprite import Sprite
 from pyglet.window import Window
 
 
-__all__ = ['init']
+__all__ = ["init"]
 
 _TILE_SIZE = (64, 64)
 _SNAKE_IMAGE = join("resources", "green.png")
