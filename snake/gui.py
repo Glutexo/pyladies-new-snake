@@ -4,6 +4,7 @@ from pyglet.clock import schedule_interval
 from pyglet.image import load
 from pyglet.sprite import Sprite
 from pyglet.window import Window
+from pyglet.window.key import DOWN, LEFT, RIGHT, UP
 
 
 __all__ = ["init"]
@@ -31,7 +32,7 @@ def sprite(image, pos):
     return Sprite(image, x=x, y=y)
 
 
-def init(board_size, state, tick):
+def init(board_size, state, turn, tick):
     def snake_to_sprites(snake):
         for pos in snake:
             s = sprite(snake_image, pos)
@@ -41,6 +42,18 @@ def init(board_size, state, tick):
         window.clear()
         for sprite in sprites:
             sprite.draw()
+
+    def keypress(symbol, modifiers):
+        if symbol == UP:
+            turn(state, (0, 1))
+        elif symbol == DOWN:
+            turn(state, (0, -1))
+        elif symbol == LEFT:
+            turn(state, (-1, 0))
+        elif symbol == RIGHT:
+            turn(state, (1, 0))
+        else:
+            pass
 
     def interval(dt):
         tick(state)
@@ -55,7 +68,7 @@ def init(board_size, state, tick):
     snake_to_sprites(state.snake)
 
     window = _window(board_size)
-    window.push_handlers(on_draw=draw)
+    window.push_handlers(on_draw=draw, on_key_press=keypress)
 
     schedule_interval(interval, 1)
 

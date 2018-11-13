@@ -2,7 +2,7 @@ from math import floor
 from snake.state import State
 
 
-__all__ = ["initial_state", "tick"]
+__all__ = ["initial_state", "tick", "turn"]
 
 
 _initial_direction = 1, 0
@@ -26,6 +26,10 @@ def _move(pos, direction):
 
 def initial_state(board_size):
     return State(snake=_initial_snake(board_size), direction=_initial_direction)
+
+
+def turn(state, direction):
+    state.direction = direction
 
 
 def tick(state):
