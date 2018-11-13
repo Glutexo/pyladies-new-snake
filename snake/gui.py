@@ -30,15 +30,16 @@ def sprite(image, pos):
     return Sprite(image, x=x, y=y)
 
 
-def init(board_size, snake_pos):
+def init(board_size, snake):
     def draw():
         window.clear()
         for sprite in sprites:
             sprite.draw()
 
     snake_image = load(_SNAKE_IMAGE)
-    snake_sprite = sprite(snake_image, snake_pos)
-    sprites.add(snake_sprite)
+    for snake_pos in snake:
+        snake_sprite = sprite(snake_image, snake_pos)
+        sprites.add(snake_sprite)
 
     window = _window(board_size)
     window.push_handlers(on_draw=draw)
