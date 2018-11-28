@@ -16,6 +16,10 @@ class CollisionWithWall(Collision):
     pass
 
 
+class CollisionWithSnake(Collision):
+    pass
+
+
 def _dimension_center(dimension):
     return floor(dimension / 2)
 
@@ -30,6 +34,10 @@ def _in_board(board_size, pos):
     return in_h and in_v
 
 
+def _in_snake(snake):
+    return _snake_head(snake) in _snake_body(snake)
+
+
 def _initial_snake(board_size):
     return [_board_center(board_size)]
 
@@ -42,6 +50,10 @@ def _snake_head(snake):
     return snake[0]
 
 
+def _snake_body(snake):
+    return snake[1:]
+
+
 def _move_snake(snake, direction):
     old_snake_head = _snake_head(snake)
     new_snake_head = _move(old_snake_head, direction)
@@ -49,8 +61,10 @@ def _move_snake(snake, direction):
 
 
 def _check_collision(board_size, snake):
-    if not _in_board(board_size, snake):
+    if not _in_board(board_size, _snake_head(snake)):
         raise CollisionWithWall
+    if _in_snake(snake):
+        raise CollisionWithSnake
 
 
 def initial_state(board_size):
@@ -67,4 +81,4 @@ def turn(state, direction):
 
 def tick(state):
     state.snake = _move_snake(state.snake, state.direction)
-    _check_collision(state.board_size, _snake_head(state.snake))
+    _check_collision(state.board_size, state.snake)
