@@ -32,7 +32,7 @@ def sprite(image, pos):
     return Sprite(image, x=x, y=y)
 
 
-def init(board_size, state, turn, tick):
+def init(board_size, snake_speed, state, turn, tick):
     def snake_to_sprites(snake):
         for pos in snake:
             s = sprite(snake_image, pos)
@@ -70,6 +70,6 @@ def init(board_size, state, turn, tick):
     window = _window(board_size)
     window.push_handlers(on_draw=draw, on_key_press=keypress)
 
-    schedule_interval(interval, 1)
+    schedule_interval(interval, snake_speed)
 
     run()
