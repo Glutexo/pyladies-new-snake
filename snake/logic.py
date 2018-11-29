@@ -54,6 +54,10 @@ def _snake_body(snake):
     return snake[1:]
 
 
+def _snake_has_body(snake):
+    return len(snake) > 1
+
+
 def _move_snake(snake, direction):
     old_snake_head = _snake_head(snake)
     new_snake_head = _move(old_snake_head, direction)
@@ -80,7 +84,9 @@ def initial_state(board_size):
 
 
 def turn(state, direction):
-    if direction not in (state.direction, _opposite_direction(state.direction)):
+    snake_has_body = _snake_has_body(state.snake)
+    goes_backwards = direction == _opposite_direction(state.direction)
+    if not (snake_has_body and goes_backwards):
         state.direction = direction
 
 
