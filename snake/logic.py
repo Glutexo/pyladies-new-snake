@@ -67,6 +67,10 @@ def _check_collision(board_size, snake):
         raise CollisionWithSnake
 
 
+def _opposite_direction(direction):
+    return direction[0] * -1, direction[1] * -1
+
+
 def initial_state(board_size):
     return State(
         board_size=board_size,
@@ -76,7 +80,8 @@ def initial_state(board_size):
 
 
 def turn(state, direction):
-    state.direction = direction
+    if direction not in (state.direction, _opposite_direction(state.direction)):
+        state.direction = direction
 
 
 def tick(state):
