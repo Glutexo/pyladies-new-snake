@@ -10,7 +10,7 @@ from pyglet.window.key import DOWN, LEFT, RIGHT, UP
 __all__ = ["init"]
 
 _TILE_SIZE = (64, 64)
-_SNAKE_IMAGE = join("resources", "green.png")
+_SNAKE_IMAGE = join("resources", "tail-head.png")
 _FOOD_IMAGE = join("resources", "apple.png")
 
 
