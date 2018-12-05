@@ -1,4 +1,5 @@
 from math import floor
+from random import randint
 from snake.state import State
 
 
@@ -28,6 +29,14 @@ def _board_center(board_size):
     return tuple(map(_dimension_center, board_size))
 
 
+def _dimension_random(dimension):
+    return randint(0, dimension - 1)
+
+
+def _board_random(board_size):
+    return _dimension_random(board_size[0]), _dimension_random(board_size[1])
+
+
 def _in_board(board_size, pos):
     in_h = 0 <= pos[0] < board_size[0]
     in_v = 0 <= pos[1] < board_size[1]
@@ -39,6 +48,7 @@ def _in_snake(snake):
 
 
 def _initial_snake(board_size):
+    # return [(4, 2), (3, 2), (2, 2), (1, 2), (0, 2), (0, 1)]
     return [_board_center(board_size)]
 
 
@@ -75,11 +85,18 @@ def _opposite_direction(direction):
     return direction[0] * -1, direction[1] * -1
 
 
+def _new_food(board_size, snake):
+    while True:
+        food = _board_random(board_size)
+        if food not in snake:
+            return food
+
+
 def initial_state(board_size):
+    snake = _initial_snake(board_size)
+    food = _new_food(board_size, snake)
     return State(
-        board_size=board_size,
-        snake=_initial_snake(board_size),
-        direction=_initial_direction,
+        board_size=board_size, snake=snake, direction=_initial_direction, food=food
     )
 
 

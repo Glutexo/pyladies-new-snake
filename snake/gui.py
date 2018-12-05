@@ -11,6 +11,7 @@ __all__ = ["init"]
 
 _TILE_SIZE = (64, 64)
 _SNAKE_IMAGE = join("resources", "green.png")
+_FOOD_IMAGE = join("resources", "apple.png")
 
 
 sprites = set()
@@ -38,6 +39,10 @@ def init(board_size, snake_speed, state, turn, tick):
             s = sprite(snake_image, pos)
             sprites.add(s)
 
+    def food_to_sprite(food):
+        s = sprite(food_image, food)
+        sprites.add(s)
+
     def draw():
         window.clear()
         for sprite in sprites:
@@ -63,9 +68,13 @@ def init(board_size, snake_speed, state, turn, tick):
             sprites.remove(sprite)
 
         snake_to_sprites(state.snake)
+        food_to_sprite(state.food)
 
     snake_image = load(_SNAKE_IMAGE)
     snake_to_sprites(state.snake)
+
+    food_image = load(_FOOD_IMAGE)
+    food_to_sprite(state.food)
 
     window = _window(board_size)
     window.push_handlers(on_draw=draw, on_key_press=keypress)
