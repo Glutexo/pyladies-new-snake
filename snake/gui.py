@@ -40,6 +40,8 @@ def init(board_size, snake_speed, state, turn, tick):
             sprites.add(s)
 
     def food_to_sprite(food):
+        if not food:
+            return
         s = sprite(food_image, food)
         sprites.add(s)
 

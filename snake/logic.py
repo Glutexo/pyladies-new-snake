@@ -109,4 +109,6 @@ def turn(state, direction):
 
 def tick(state):
     state.snake = _move_snake(state.snake, state.direction)
+    if _snake_head(state.snake) == state.food:
+        state.food = None
     _check_collision(state.board_size, state.snake)
