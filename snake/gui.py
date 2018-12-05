@@ -33,18 +33,20 @@ def sprite(image, pos):
     return Sprite(image, x=x, y=y)
 
 
-def init(board_size, snake_speed, state, turn, tick):
-    def snake_to_sprites(snake):
-        for pos in snake:
-            s = sprite(snake_image, pos)
-            sprites.add(s)
-
-    def food_to_sprite(food):
-        if not food:
-            return
-        s = sprite(food_image, food)
+def _snake_to_sprites(image, snake):
+    for pos in snake:
+        s = sprite(image, pos)
         sprites.add(s)
 
+
+def _food_to_sprite(image, food):
+    if not food:
+        return
+    s = sprite(image, food)
+    sprites.add(s)
+
+
+def init(board_size, snake_speed, state, turn, tick):
     def draw():
         window.clear()
         for sprite in sprites:
@@ -69,14 +71,14 @@ def init(board_size, snake_speed, state, turn, tick):
             sprite.delete()
             sprites.remove(sprite)
 
-        snake_to_sprites(state.snake)
-        food_to_sprite(state.food)
+        _snake_to_sprites(snake_image, state.snake)
+        _food_to_sprite(food_image, state.food)
 
     snake_image = load(_SNAKE_IMAGE)
-    snake_to_sprites(state.snake)
+    _snake_to_sprites(snake_image, state.snake)
 
     food_image = load(_FOOD_IMAGE)
-    food_to_sprite(state.food)
+    _food_to_sprite(food_image, state.food)
 
     window = _window(board_size)
     window.push_handlers(on_draw=draw, on_key_press=keypress)
