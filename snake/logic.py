@@ -68,10 +68,14 @@ def _snake_has_body(snake):
     return len(snake) > 1
 
 
-def _move_snake(snake, direction):
+def _extend_snake(snake, direction):
     old_snake_head = _snake_head(snake)
     new_snake_head = _move(old_snake_head, direction)
-    return [new_snake_head] + snake[:-1]
+    return [new_snake_head] + snake
+
+
+def _contract_snake(snake):
+    return snake[:-1]
 
 
 def _check_collision(board_size, snake):
@@ -108,7 +112,9 @@ def turn(state, direction):
 
 
 def tick(state):
-    state.snake = _move_snake(state.snake, state.direction)
+    state.snake = _extend_snake(state.snake, state.direction)
     if _snake_head(state.snake) == state.food:
         state.food = None
+    else:
+        state.snake = _contract_snake(state.snake)
     _check_collision(state.board_size, state.snake)
