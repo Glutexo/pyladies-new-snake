@@ -111,10 +111,10 @@ def turn(state, direction):
         state.direction = direction
 
 
-def tick(state):
+def tick(board_size, state):
     state.snake = _extend_snake(state.snake, state.direction)
     if _snake_head(state.snake) == state.food:
-        state.food = None
+        state.food = _board_random(board_size)
     else:
         state.snake = _contract_snake(state.snake)
     _check_collision(state.board_size, state.snake)

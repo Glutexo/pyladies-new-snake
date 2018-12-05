@@ -63,7 +63,7 @@ def init(board_size, snake_speed, state, turn, tick):
             pass
 
     def interval(dt):
-        tick(state)
+        tick(board_size, state)
 
         for sprite in list(sprites):
             sprite.delete()
