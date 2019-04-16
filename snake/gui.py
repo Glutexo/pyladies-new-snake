@@ -25,7 +25,7 @@ def _in_pixels(tiles):
 
 def _window(board_size):
     window_width, window_height = _in_pixels(board_size)
-    return Window(window_width, window_height)
+    return Window(window_width, window_height, "Snake")
 
 
 def sprite(image, pos):
