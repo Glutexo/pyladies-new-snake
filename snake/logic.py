@@ -106,13 +106,15 @@ def initial_state(board_size):
 
 def turn(state, direction):
     snake_has_body = _snake_has_body(state.snake)
-    goes_backwards = direction == _opposite_direction(state.direction)
+    goes_backwards = direction == _opposite_direction(state.current_direction)
     if not (snake_has_body and goes_backwards):
-        state.direction = direction
+        state.planned_direction = direction
 
 
 def tick(board_size, state):
-    state.snake = _extend_snake(state.snake, state.direction)
+    state.current_direction = state.planned_direction
+
+    state.snake = _extend_snake(state.snake, state.current_direction)
     if _snake_head(state.snake) == state.food:
         state.food = _board_random(board_size)
     else:
