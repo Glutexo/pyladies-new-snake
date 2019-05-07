@@ -1,3 +1,4 @@
+from itertools import chain
 from os.path import join
 from pyglet.app import run
 from pyglet.clock import schedule_interval
@@ -14,7 +15,7 @@ _SNAKE_IMAGE = join("resources", "tail-head.png")
 _FOOD_IMAGE = join("resources", "apple.png")
 
 
-sprites = set()
+_sprites = set()
 
 
 def _in_pixels(tiles):
@@ -28,28 +29,26 @@ def _window(board_size):
     return Window(window_width, window_height, "Snake")
 
 
-def sprite(image, pos):
+def _sprite(image, pos):
     x, y = _in_pixels(pos)
     return Sprite(image, x=x, y=y)
 
 
 def _snake_to_sprites(image, snake):
     for pos in snake:
-        s = sprite(image, pos)
-        sprites.add(s)
+        yield _sprite(image, pos)
 
 
 def _food_to_sprite(image, food):
     if not food:
         return
-    s = sprite(image, food)
-    sprites.add(s)
+    return _sprite(image, food)
 
 
 def init(board_size, snake_speed, state, turn, tick):
     def draw():
         window.clear()
-        for sprite in sprites:
+        for sprite in _sprites:
             sprite.draw()
 
     def keypress(symbol, modifiers):
@@ -67,12 +66,14 @@ def init(board_size, snake_speed, state, turn, tick):
     def interval(dt):
         tick(board_size, state)
 
-        for sprite in list(sprites):
+        for sprite in list(_sprites):
             sprite.delete()
-            sprites.remove(sprite)
+            _sprites.remove(sprite)
 
-        _snake_to_sprites(snake_image, state.snake)
-        _food_to_sprite(food_image, state.food)
+        snake_sprites = _snake_to_sprites(snake_image, state.snake)
+        food_sprite = _food_to_sprite(food_image, state.food)
+        for sprite in chain(snake_sprites, [food_sprite]):
+            _sprites.add(sprite)
 
     snake_image = load(_SNAKE_IMAGE)
     _snake_to_sprites(snake_image, state.snake)
