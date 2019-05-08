@@ -1,7 +1,6 @@
 from collections import namedtuple
 from itertools import chain
 from os.path import join
-from types import MethodType
 from pyglet.app import run
 from pyglet.clock import schedule_interval
 from pyglet.image import load
@@ -23,6 +22,13 @@ _KEY_MAPPING = {
 }
 
 
+class _Events:
+    __slots__ = ("interval", "on_key_press")
+
+
+_EventFuncs = namedtuple("_EventFuncs", _Events.__slots__)
+
+
 class _Sprites:
     def __init__(self):
         self.snake = []
@@ -33,33 +39,6 @@ class _Images:
     def __init__(self):
         self.snake = load(_SNAKE_IMAGE)
         self.food = load(_FOOD_IMAGE)
-
-
-EventTypes = namedtuple("EventTypes", ("interval", "on_key_press"))
-
-
-class _Events:
-    def __init__(self, initial_state, state_changed, event_funcs):
-        def event_func(name):
-            def event(self, *args, **kwargs):
-                updated_state = getattr(self._events, name)(*args, **kwargs)
-                state_changed(updated_state)
-                self._update_events(updated_state)
-            return event
-
-        self._state_changed = state_changed
-        self._event_funcs = event_funcs
-        self._update_events(initial_state)
-
-        for name in event_funcs._fields:
-            method = event_func(name)
-            setattr(self, name, MethodType(method, self))
-
-    def _update_events(self, updated_state):
-        events = {}
-        for name, event_func in self._event_funcs._asdict().items():
-            events[name] = event_func(updated_state)
-        self._events = EventTypes(**events)
 
 
 def _tiles_to_pixels(tiles):
@@ -112,24 +91,38 @@ def init(board_size, snake_speed, initial_state, logic_events):
                 return event(current_state)
         return on_key_press
 
-    def state_changed(current_state):
-        _ensure_sprites(sprites, current_state, images)
-        _position_sprites(sprites, current_state)
+    def state_changed(updated_state):
+        _ensure_sprites(sprites, updated_state, images)
+        _position_sprites(sprites, updated_state)
+        update_events(updated_state)
 
     def draw():
         window.clear()
         for sprite in chain(sprites.snake, [sprites.food]):
             sprite.draw()
 
+    def update_events(updated_state):
+        for event_type in _Events.__slots__:
+            event_func = getattr(event_funcs, event_type)
+            setattr(gui_events, event_type, event_func(updated_state))
+
+    def gui_event(name):
+        def event(*args, **kwargs):
+            event = getattr(gui_events, name)
+            updated_state = event(*args, **kwargs)
+            state_changed(updated_state)
+        return event
+
+    gui_events = _Events()
+    event_funcs = _EventFuncs(interval_func, on_key_press_func)
+
     sprites = _Sprites()
     images = _Images()
-    gui_event_types = EventTypes(interval_func, on_key_press_func)
-    gui_events = _Events(initial_state, state_changed, gui_event_types)
 
     window = _window(board_size)
-    window.push_handlers(on_draw=draw, on_key_press=gui_events.on_key_press)
+    window.push_handlers(on_draw=draw, on_key_press=gui_event("on_key_press"))
 
-    schedule_interval(gui_events.interval, snake_speed)
+    schedule_interval(gui_event("interval"), snake_speed)
 
     state_changed(initial_state)
     run()
