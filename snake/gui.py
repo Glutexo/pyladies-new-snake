@@ -34,6 +34,30 @@ class _Images:
         self.food = load(_FOOD_IMAGE)
 
 
+class _Events:
+    def __init__(self, state, board_size, events, state_changed):
+        self._state = state
+        self._board_size = board_size
+        self._events = events
+        self._state_changed = state_changed
+
+    def interval(self, dt):
+        self._state = self._events.tick(self._board_size, self._state)
+        self._state_changed(self._state)
+
+    def on_key_press(self, symbol, modifier):
+        try:
+            self._state = getattr(self._events, _KEY_MAPPING[symbol])(self._state)
+        except KeyError:
+            pass
+        else:
+            self._state_changed(self._state)
+
+    def run(self):
+        self._state_changed(self._state)
+
+
+
 def _tiles_to_pixels(tiles):
     pixels_x = tiles.x * _TILE_SIZE.x
     pixels_y = tiles.y * _TILE_SIZE.y
@@ -68,35 +92,24 @@ def _position_sprites(sprites, state):
     _position_sprite(sprites.food, state.food)
 
 
-def init(board_size, snake_speed, state, events):
-    def state_changed(new_state):
-        _ensure_sprites(sprites, new_state, images)
-        _position_sprites(sprites, new_state)
+def init(board_size, snake_speed, initial_state, logic_events):
+    def state_changed(current_state):
+        _ensure_sprites(sprites, current_state, images)
+        _position_sprites(sprites, current_state)
 
     def draw():
         window.clear()
         for sprite in chain(sprites.snake, [sprites.food]):
             sprite.draw()
 
-    def keypress(symbol, modifiers):
-        try:
-            new_state = getattr(events, _KEY_MAPPING[symbol])(state)
-        except KeyError:
-            pass
-        else:
-            state_changed(new_state)
-
-    def interval(dt):
-        new_state = events.tick(board_size, state)
-        state_changed(new_state)
-
     sprites = _Sprites()
     images = _Images()
+    gui_events = _Events(initial_state, board_size, logic_events, state_changed)
 
     window = _window(board_size)
-    window.push_handlers(on_draw=draw, on_key_press=keypress)
+    window.push_handlers(on_draw=draw, on_key_press=gui_events.on_key_press)
 
-    schedule_interval(interval, snake_speed)
-    state_changed(state)
+    schedule_interval(gui_events.interval, snake_speed)
 
+    gui_events.run()
     run()
