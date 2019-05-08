@@ -4,7 +4,7 @@ from random import randint
 from snake.state import State
 
 
-__all__ = ["initial_state", "Events"]
+__all__ = ["Events", "initial_state"]
 
 
 _initial_direction = 1, 0
