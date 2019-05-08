@@ -4,7 +4,7 @@ from random import randint
 from snake.state import State
 
 
-__all__ = ["initial_state", "tick", "Turns"]
+__all__ = ["initial_state", "Events"]
 
 
 _initial_direction = 1, 0
@@ -118,14 +118,7 @@ def _turn_func(direction):
     return turn
 
 
-class Turns(Enum):
-    turn_up = _turn_func((0, 1))
-    turn_down = _turn_func((0, -1))
-    turn_left = _turn_func((-1, 0))
-    turn_right = _turn_func((1, 0))
-
-
-def tick(board_size, state):
+def _tick(board_size, state):
     state.current_direction = state.planned_direction
 
     state.snake = _extend_snake(state.snake, state.current_direction)
@@ -134,3 +127,11 @@ def tick(board_size, state):
     else:
         state.snake = _contract_snake(state.snake)
     _check_collision(state.board_size, state.snake)
+
+
+class Events(Enum):
+    turn_up = _turn_func((0, 1))
+    turn_down = _turn_func((0, -1))
+    turn_left = _turn_func((-1, 0))
+    turn_right = _turn_func((1, 0))
+    tick = _tick

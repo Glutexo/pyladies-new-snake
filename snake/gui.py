@@ -61,7 +61,7 @@ def _position_sprites(sprites, state):
     _position_sprite(sprites.food, state.food)
 
 
-def init(board_size, snake_speed, state, turns, tick):
+def init(board_size, snake_speed, state, events):
     def draw():
         _ensure_sprites(sprites, state, images)
         _position_sprites(sprites, state)
@@ -72,18 +72,18 @@ def init(board_size, snake_speed, state, turns, tick):
 
     def keypress(symbol, modifiers):
         if symbol == UP:
-            turns.turn_up(state)
+            events.turn_up(state)
         elif symbol == DOWN:
-            turns.turn_down(state)
+            events.turn_down(state)
         elif symbol == LEFT:
-            turns.turn_left(state)
+            events.turn_left(state)
         elif symbol == RIGHT:
-            turns.turn_right(state)
+            events.turn_right(state)
         else:
             pass
 
     def interval(dt):
-        tick(board_size, state)
+        events.tick(board_size, state)
 
     sprites = _Sprites()
     images = _Images()
