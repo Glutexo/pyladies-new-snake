@@ -8,10 +8,9 @@ from snake.state import State
 __all__ = ["Events", "initial_state", "Tiles"]
 
 
-_initial_direction = 1, 0
-
-
 Tiles = namedtuple("Tiles", ("x", "y"))
+
+_initial_direction = Tiles(1, 0)
 
 
 class Collision(RuntimeError):
@@ -61,8 +60,8 @@ def _initial_snake(board_size):
 
 
 def _move(pos, direction):
-    x = pos.x + direction[0]
-    y = pos.y + direction[1]
+    x = pos.x + direction.x
+    y = pos.y + direction.y
     return Tiles(x, y)
 
 
@@ -96,7 +95,7 @@ def _check_collision(board_size, snake):
 
 
 def _opposite_direction(direction):
-    return direction[0] * -1, direction[1] * -1
+    return -direction.x, -direction.y
 
 
 def _new_food(board_size, snake):
@@ -139,8 +138,8 @@ def _tick(board_size, state):
 
 
 class Events(Enum):
-    turn_up = _turn_func((0, 1))
-    turn_down = _turn_func((0, -1))
-    turn_left = _turn_func((-1, 0))
-    turn_right = _turn_func((1, 0))
+    turn_up = _turn_func(Tiles(0, 1))
+    turn_down = _turn_func(Tiles(0, -1))
+    turn_left = _turn_func(Tiles(-1, 0))
+    turn_right = _turn_func(Tiles(1, 0))
     tick = _tick
