@@ -79,7 +79,7 @@ def init(board_size, snake_speed, initial_state, logic_events):
             try:
                 logic_event = getattr(logic_events, _KEY_MAPPING[symbol])
             except KeyError:
-                pass
+                return current_state
             else:
                 return logic_event(current_state)
         return on_key_press
