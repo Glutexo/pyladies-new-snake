@@ -1,6 +1,7 @@
 from collections import namedtuple
 from itertools import chain
 from os.path import join
+from types import MethodType
 from pyglet.app import run
 from pyglet.clock import schedule_interval
 from pyglet.image import load
@@ -34,26 +35,41 @@ class _Images:
         self.food = load(_FOOD_IMAGE)
 
 
+EventTypes = namedtuple("EventTypes", ("interval", "on_key_press"))
+
+
 class _Events:
-    def __init__(self, initial_state, state_changed, interval_func, on_key_press_func):
+    def __init__(self, initial_state, state_changed, event_funcs):
+        def event_func(name):
+            def event(self, *args, **kwargs):
+                updated_state = getattr(self._events, name)(*args, **kwargs)
+                state_changed(updated_state)
+                self._update_events(updated_state)
+            return event
+
         self._state_changed = state_changed
-        self._interval_func = interval_func
-        self._on_key_press_func = on_key_press_func
+        self._event_funcs = event_funcs
         self._update_events(initial_state)
 
+        for name in event_funcs._fields:
+            method = event_func(name)
+            setattr(self, name, MethodType(method, self))
+
     def _update_events(self, updated_state):
-        self._interval = self._interval_func(updated_state)
-        self._on_key_press = self._on_key_press_func(updated_state)
+        events = {}
+        for name, event_func in self._event_funcs._asdict().items():
+            events[name] = event_func(updated_state)
+        self._events = EventTypes(**events)
 
-    def interval(self, dt):
-        updated_state = self._interval(dt)
-        self._state_changed(updated_state)
-        self._update_events(updated_state)
-
-    def on_key_press(self, symbol, modifier):
-        updated_state = self._on_key_press(symbol, modifier)
-        self._state_changed(updated_state)
-        self._update_events(updated_state)
+    # def interval(self, dt):
+    #     updated_state = self._events.interval(dt)
+    #     self._state_changed(updated_state)
+    #     self._update_events(updated_state)
+    #
+    # def on_key_press(self, symbol, modifier):
+    #     updated_state = self._events.on_key_press(symbol, modifier)
+    #     self._state_changed(updated_state)
+    #     self._update_events(updated_state)
 
 
 def _tiles_to_pixels(tiles):
@@ -117,7 +133,8 @@ def init(board_size, snake_speed, initial_state, logic_events):
 
     sprites = _Sprites()
     images = _Images()
-    gui_events = _Events(initial_state, state_changed, interval_func, on_key_press_func)
+    gui_event_types = EventTypes(interval_func, on_key_press_func)
+    gui_events = _Events(initial_state, state_changed, gui_event_types)
 
     window = _window(board_size)
     window.push_handlers(on_draw=draw, on_key_press=gui_events.on_key_press)
