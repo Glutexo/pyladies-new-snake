@@ -50,11 +50,15 @@ def _ensure_sprites(sprites, state, images):
         sprites.food = Sprite(images.food)
 
 
+def _position_sprite(sprite, pos):
+    sprite.x, sprite.y = _in_pixels(pos)
+
+
 def _position_sprites(sprites, state):
     for i, sprite in enumerate(sprites.snake):
-        sprites.snake[i].x, sprites.snake[i].y = _in_pixels(state.snake[i])
+        _position_sprite(sprite, state.snake[i])
 
-    sprites.food.x, sprites.food.y = _in_pixels(state.food)
+    _position_sprite(sprites.food, state.food)
 
 
 def init(board_size, snake_speed, state, turn, tick):
