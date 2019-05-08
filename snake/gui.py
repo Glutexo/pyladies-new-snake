@@ -61,16 +61,6 @@ class _Events:
             events[name] = event_func(updated_state)
         self._events = EventTypes(**events)
 
-    # def interval(self, dt):
-    #     updated_state = self._events.interval(dt)
-    #     self._state_changed(updated_state)
-    #     self._update_events(updated_state)
-    #
-    # def on_key_press(self, symbol, modifier):
-    #     updated_state = self._events.on_key_press(symbol, modifier)
-    #     self._state_changed(updated_state)
-    #     self._update_events(updated_state)
-
 
 def _tiles_to_pixels(tiles):
     pixels_x = tiles.x * _TILE_SIZE.x
