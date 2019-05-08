@@ -1,10 +1,14 @@
-__all__ = ["State"]
+from collections import namedtuple
+
+__all__ = ["State", "tick"]
 
 
-class State:
-    def __init__(self, snake, direction, food):
-        self.snake = snake
-        self.food = food
+State = namedtuple("State", ("snake", "food", "current_direction", "planned_direction"))
 
-        self.current_direction = direction
-        self.planned_direction = direction
+
+def tick(state, snake, food):
+    return State(snake, food, state.planned_direction, state.planned_direction)
+
+
+def turn(state, direction):
+    return State(state.snake, state.food, state.current_direction, direction)

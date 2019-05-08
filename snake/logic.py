@@ -2,7 +2,7 @@ from collections import namedtuple
 from enum import Enum
 from math import floor
 from random import randint
-from snake.state import State
+from snake.state import State, tick, turn
 
 
 __all__ = ["Events", "initial_state", "Tiles"]
@@ -102,15 +102,18 @@ def _new_food(board_size, snake):
 def initial_state(board_size):
     snake = _initial_snake(board_size)
     food = _new_food(board_size, snake)
-    return State(snake=snake, direction=_initial_direction, food=food)
+    return State(snake, food, _initial_direction, _initial_direction)
 
 
 def _turn(direction, state):
     snake_has_body = _snake_has_body(state.snake)
     goes_backwards = direction == _opposite_direction(state.current_direction)
-    if not (snake_has_body and goes_backwards):
-        state.planned_direction = direction
-    return state
+
+    void_movement = snake_has_body and goes_backwards
+    if void_movement:
+        return state
+    else:
+        return turn(state, direction)
 
 
 def _turn_func(direction):
@@ -120,16 +123,15 @@ def _turn_func(direction):
 
 
 def _tick(board_size, state):
-    state.current_direction = state.planned_direction
-
-    state.snake = _extend_snake(state.snake, state.current_direction)
-    if _snake_head(state.snake) == state.food:
-        state.food = _new_food(board_size, state.snake)
+    snake = _extend_snake(state.snake, state.planned_direction)
+    if _snake_head(snake) == state.food:
+        food = _new_food(board_size, snake)
     else:
-        state.snake = _contract_snake(state.snake)
-    _check_collision(board_size, state.snake)
+        food = state.food
+        snake = _contract_snake(snake)
+    _check_collision(board_size, snake)
 
-    return state
+    return tick(state, snake, food)
 
 
 class Events(Enum):
