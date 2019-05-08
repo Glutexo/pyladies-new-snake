@@ -22,13 +22,6 @@ _KEY_MAPPING = {
 }
 
 
-class _Events:
-    __slots__ = ("interval", "on_key_press")
-
-
-_EventFuncs = namedtuple("_EventFuncs", _Events.__slots__)
-
-
 class _Sprites:
     def __init__(self):
         self.snake = []
@@ -76,53 +69,49 @@ def _position_sprites(sprites, state):
 
 
 def init(board_size, snake_speed, initial_state, logic_events):
-    def interval_func(current_state):
+    def create_interval(current_state):
         def interval(dt):
             return logic_events.tick(board_size, current_state)
         return interval
 
-    def on_key_press_func(current_state):
+    def create_on_key_press(current_state):
         def on_key_press(symbol, modifier):
             try:
-                event = getattr(logic_events, _KEY_MAPPING[symbol])
+                logic_event = getattr(logic_events, _KEY_MAPPING[symbol])
             except KeyError:
                 pass
             else:
-                return event(current_state)
+                return logic_event(current_state)
         return on_key_press
 
     def state_changed(updated_state):
         _ensure_sprites(sprites, updated_state, images)
         _position_sprites(sprites, updated_state)
-        update_events(updated_state)
+
+        for event_creator in gui_events:
+            gui_events[event_creator] = event_creator(updated_state)
 
     def draw():
         window.clear()
         for sprite in chain(sprites.snake, [sprites.food]):
             sprite.draw()
 
-    def update_events(updated_state):
-        for event_type in _Events.__slots__:
-            event_func = getattr(event_funcs, event_type)
-            setattr(gui_events, event_type, event_func(updated_state))
-
-    def gui_event(name):
-        def event(*args, **kwargs):
-            event = getattr(gui_events, name)
-            updated_state = event(*args, **kwargs)
+    def bind_event(creator):
+        def binding(*args, **kwargs):
+            updated_state = gui_events[creator](*args, **kwargs)
             state_changed(updated_state)
-        return event
+        gui_events[creator] = None
+        return binding
 
-    gui_events = _Events()
-    event_funcs = _EventFuncs(interval_func, on_key_press_func)
+    gui_events = {}
 
     sprites = _Sprites()
     images = _Images()
 
     window = _window(board_size)
-    window.push_handlers(on_draw=draw, on_key_press=gui_event("on_key_press"))
+    window.push_handlers(on_draw=draw, on_key_press=bind_event(create_on_key_press))
 
-    schedule_interval(gui_event("interval"), snake_speed)
+    schedule_interval(bind_event(create_interval), snake_speed)
 
     state_changed(initial_state)
     run()
