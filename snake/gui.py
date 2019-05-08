@@ -35,27 +35,15 @@ class _Images:
 
 
 class _Events:
-    def __init__(self, state, board_size, events, state_changed):
-        self._state = state
-        self._board_size = board_size
-        self._events = events
-        self._state_changed = state_changed
+    def __init__(self, interval, on_key_press):
+        self._interval = interval
+        self._on_key_press = on_key_press
 
     def interval(self, dt):
-        self._state = self._events.tick(self._board_size, self._state)
-        self._state_changed(self._state)
+        self._interval(dt)
 
     def on_key_press(self, symbol, modifier):
-        try:
-            self._state = getattr(self._events, _KEY_MAPPING[symbol])(self._state)
-        except KeyError:
-            pass
-        else:
-            self._state_changed(self._state)
-
-    def run(self):
-        self._state_changed(self._state)
-
+        self._on_key_press(symbol, modifier)
 
 
 def _tiles_to_pixels(tiles):
@@ -93,9 +81,29 @@ def _position_sprites(sprites, state):
 
 
 def init(board_size, snake_speed, initial_state, logic_events):
+    def interval_func(current_state):
+        def interval(dt):
+            updated_state = logic_events.tick(board_size, current_state)
+            state_changed(updated_state)
+        return interval
+
+    def on_key_press_func(current_state):
+        def on_key_press(symbol, modifier):
+            try:
+                event = getattr(logic_events, _KEY_MAPPING[symbol])
+                updated_state = event(current_state)
+            except KeyError:
+                pass
+            else:
+                state_changed(updated_state)
+        return on_key_press
+
     def state_changed(current_state):
         _ensure_sprites(sprites, current_state, images)
         _position_sprites(sprites, current_state)
+
+        gui_events._interval = interval_func(current_state)
+        gui_events._on_key_press = on_key_press_func(current_state)
 
     def draw():
         window.clear()
@@ -104,12 +112,12 @@ def init(board_size, snake_speed, initial_state, logic_events):
 
     sprites = _Sprites()
     images = _Images()
-    gui_events = _Events(initial_state, board_size, logic_events, state_changed)
+    gui_events = _Events(interval_func(initial_state), on_key_press_func(initial_state))
 
     window = _window(board_size)
     window.push_handlers(on_draw=draw, on_key_press=gui_events.on_key_press)
 
     schedule_interval(gui_events.interval, snake_speed)
 
-    gui_events.run()
+    state_changed(initial_state)
     run()
