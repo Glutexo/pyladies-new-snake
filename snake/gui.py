@@ -65,28 +65,29 @@ def _position_sprites(sprites, state):
 
 
 def init(board_size, snake_speed, state, events):
-    def draw():
+    def state_changed():
         _ensure_sprites(sprites, state, images)
         _position_sprites(sprites, state)
 
+    def draw():
         window.clear()
         for sprite in chain(sprites.snake, [sprites.food]):
             sprite.draw()
 
     def keypress(symbol, modifiers):
         if symbol == UP:
-            events.turn_up(state)
+            events.turn_up(state, state_changed)
         elif symbol == DOWN:
-            events.turn_down(state)
+            events.turn_down(state, state_changed)
         elif symbol == LEFT:
-            events.turn_left(state)
+            events.turn_left(state, state_changed)
         elif symbol == RIGHT:
-            events.turn_right(state)
+            events.turn_right(state, state_changed)
         else:
             pass
 
     def interval(dt):
-        events.tick(board_size, state)
+        events.tick(board_size, state, state_changed)
 
     sprites = _Sprites()
     images = _Images()
@@ -95,5 +96,6 @@ def init(board_size, snake_speed, state, events):
     window.push_handlers(on_draw=draw, on_key_press=keypress)
 
     schedule_interval(interval, snake_speed)
+    state_changed()
 
     run()
