@@ -17,6 +17,10 @@ _TILE_SIZE = _Pixels(64, 64)
 _SNAKE_IMAGE = join("resources", "tail-head.png")
 _FOOD_IMAGE = join("resources", "apple.png")
 
+_KEY_MAPPING = {
+    UP: "turn_up", DOWN: "turn_down", LEFT: "turn_left", RIGHT: "turn_right"
+}
+
 
 class _Sprites:
     def __init__(self):
@@ -65,9 +69,9 @@ def _position_sprites(sprites, state):
 
 
 def init(board_size, snake_speed, state, events):
-    def state_changed():
-        _ensure_sprites(sprites, state, images)
-        _position_sprites(sprites, state)
+    def state_changed(new_state):
+        _ensure_sprites(sprites, new_state, images)
+        _position_sprites(sprites, new_state)
 
     def draw():
         window.clear()
@@ -75,19 +79,16 @@ def init(board_size, snake_speed, state, events):
             sprite.draw()
 
     def keypress(symbol, modifiers):
-        if symbol == UP:
-            events.turn_up(state, state_changed)
-        elif symbol == DOWN:
-            events.turn_down(state, state_changed)
-        elif symbol == LEFT:
-            events.turn_left(state, state_changed)
-        elif symbol == RIGHT:
-            events.turn_right(state, state_changed)
-        else:
+        try:
+            new_state = getattr(events, _KEY_MAPPING[symbol])(state)
+        except KeyError:
             pass
+        else:
+            state_changed(new_state)
 
     def interval(dt):
-        events.tick(board_size, state, state_changed)
+        new_state = events.tick(board_size, state)
+        state_changed(new_state)
 
     sprites = _Sprites()
     images = _Images()
@@ -96,6 +97,6 @@ def init(board_size, snake_speed, state, events):
     window.push_handlers(on_draw=draw, on_key_press=keypress)
 
     schedule_interval(interval, snake_speed)
-    state_changed()
+    state_changed(state)
 
     run()

@@ -105,21 +105,21 @@ def initial_state(board_size):
     return State(snake=snake, direction=_initial_direction, food=food)
 
 
-def _turn(direction, state, state_changed):
+def _turn(direction, state):
     snake_has_body = _snake_has_body(state.snake)
     goes_backwards = direction == _opposite_direction(state.current_direction)
     if not (snake_has_body and goes_backwards):
         state.planned_direction = direction
-        state_changed()
+    return state
 
 
 def _turn_func(direction):
-    def turn(state, state_changed):
-        _turn(direction, state, state_changed)
+    def turn(state):
+        return _turn(direction, state)
     return turn
 
 
-def _tick(board_size, state, state_changed):
+def _tick(board_size, state):
     state.current_direction = state.planned_direction
 
     state.snake = _extend_snake(state.snake, state.current_direction)
@@ -128,7 +128,8 @@ def _tick(board_size, state, state_changed):
     else:
         state.snake = _contract_snake(state.snake)
     _check_collision(board_size, state.snake)
-    state_changed()
+
+    return state
 
 
 class Events(Enum):
