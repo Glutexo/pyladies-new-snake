@@ -1,9 +1,10 @@
+from enum import Enum
 from math import floor
 from random import randint
 from snake.state import State
 
 
-__all__ = ["initial_state", "tick", "turn"]
+__all__ = ["initial_state", "tick", "Turns"]
 
 
 _initial_direction = 1, 0
@@ -104,11 +105,24 @@ def initial_state(board_size):
     )
 
 
-def turn(state, direction):
+def _turn(state, direction):
     snake_has_body = _snake_has_body(state.snake)
     goes_backwards = direction == _opposite_direction(state.current_direction)
     if not (snake_has_body and goes_backwards):
         state.planned_direction = direction
+
+
+def _turn_func(direction):
+    def turn(state):
+        _turn(state, direction)
+    return turn
+
+
+class Turns(Enum):
+    turn_up = _turn_func((0, 1))
+    turn_down = _turn_func((0, -1))
+    turn_left = _turn_func((-1, 0))
+    turn_right = _turn_func((1, 0))
 
 
 def tick(board_size, state):

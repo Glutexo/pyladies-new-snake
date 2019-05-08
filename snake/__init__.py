@@ -1,5 +1,5 @@
 from snake.gui import init
-from snake.logic import initial_state, tick, turn
+from snake.logic import initial_state, tick, Turns
 
 __all__ = ["run"]
 
@@ -9,4 +9,4 @@ _INITIAL_SNAKE_SPEED = 1 / 2
 
 def run():
     state = initial_state(_BOARD_SIZE)
-    init(_BOARD_SIZE, _INITIAL_SNAKE_SPEED, state, turn, tick)
+    init(_BOARD_SIZE, _INITIAL_SNAKE_SPEED, state, Turns, tick)
