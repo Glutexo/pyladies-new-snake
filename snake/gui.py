@@ -15,7 +15,16 @@ _SNAKE_IMAGE = join("resources", "tail-head.png")
 _FOOD_IMAGE = join("resources", "apple.png")
 
 
-_sprites = {"snake": [], "food": None}
+class _Sprites:
+    def __init__(self):
+        self.snake = []
+        self.food = None
+        
+
+class _Images:
+    def __init__(self):
+        self.snake = load(_SNAKE_IMAGE)
+        self.food = load(_FOOD_IMAGE)
 
 
 def _in_pixels(tiles):
@@ -29,32 +38,32 @@ def _window(board_size):
     return Window(window_width, window_height, "Snake")
 
 
-def _ensure_sprites(_sprites, state, images):
-    if len(state.snake) > len(_sprites["snake"]):
-        num_sprites_to_add = len(state.snake) - len(_sprites["snake"])
+def _ensure_sprites(sprites, state, images):
+    if len(state.snake) > len(sprites.snake):
+        num_sprites_to_add = len(state.snake) - len(sprites.snake)
         for _ in range(num_sprites_to_add):
-            _sprites["snake"].append(Sprite(images["snake"]))
+            sprites.snake.append(Sprite(images.snake))
 
-    # Snake can only grow. No need to check len(_sprites["snake"]) > len(state.snake).
+    # Snake can only grow. No need to check len(sprites.snake) > len(state.snake).
 
-    if not _sprites["food"]:
-        _sprites["food"] = Sprite(images["food"])
+    if not sprites.food:
+        sprites.food = Sprite(images.food)
 
 
-def _position_sprites(_sprites, state):
-    for i, sprite in enumerate(_sprites["snake"]):
-        _sprites["snake"][i].x, _sprites["snake"][i].y = _in_pixels(state.snake[i])
+def _position_sprites(sprites, state):
+    for i, sprite in enumerate(sprites.snake):
+        sprites.snake[i].x, sprites.snake[i].y = _in_pixels(state.snake[i])
 
-    _sprites["food"].x, _sprites["food"].y = _in_pixels(state.food)
+    sprites.food.x, sprites.food.y = _in_pixels(state.food)
 
 
 def init(board_size, snake_speed, state, turn, tick):
     def draw():
-        _ensure_sprites(_sprites, state, images)
-        _position_sprites(_sprites, state)
+        _ensure_sprites(sprites, state, images)
+        _position_sprites(sprites, state)
 
         window.clear()
-        for sprite in chain(_sprites["snake"], [_sprites["food"]]):
+        for sprite in chain(sprites.snake, [sprites.food]):
             sprite.draw()
 
     def keypress(symbol, modifiers):
@@ -72,10 +81,8 @@ def init(board_size, snake_speed, state, turn, tick):
     def interval(dt):
         tick(board_size, state)
 
-    images = {
-        "snake": load(_SNAKE_IMAGE),
-        "food": load(_FOOD_IMAGE)
-    }
+    sprites = _Sprites()
+    images = _Images()
 
     window = _window(board_size)
     window.push_handlers(on_draw=draw, on_key_press=keypress)
