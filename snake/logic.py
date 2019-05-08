@@ -102,9 +102,7 @@ def _new_food(board_size, snake):
 def initial_state(board_size):
     snake = _initial_snake(board_size)
     food = _new_food(board_size, snake)
-    return State(
-        board_size=board_size, snake=snake, direction=_initial_direction, food=food
-    )
+    return State(snake=snake, direction=_initial_direction, food=food)
 
 
 def _turn(state, direction):
@@ -128,7 +126,7 @@ def _tick(board_size, state):
         state.food = _new_food(board_size, state.snake)
     else:
         state.snake = _contract_snake(state.snake)
-    _check_collision(state.board_size, state.snake)
+    _check_collision(board_size, state.snake)
 
 
 class Events(Enum):

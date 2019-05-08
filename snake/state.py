@@ -2,8 +2,7 @@ __all__ = ["State"]
 
 
 class State:
-    def __init__(self, board_size, snake, direction, food):
-        self.board_size = board_size
+    def __init__(self, snake, direction, food):
         self.snake = snake
         self.food = food
 
