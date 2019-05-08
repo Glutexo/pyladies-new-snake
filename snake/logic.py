@@ -1,13 +1,17 @@
+from collections import namedtuple
 from enum import Enum
 from math import floor
 from random import randint
 from snake.state import State
 
 
-__all__ = ["Events", "initial_state"]
+__all__ = ["Events", "initial_state", "Tiles"]
 
 
 _initial_direction = 1, 0
+
+
+Tiles = namedtuple("Tiles", ("x", "y"))
 
 
 class Collision(RuntimeError):
@@ -22,25 +26,29 @@ class CollisionWithSnake(Collision):
     pass
 
 
-def _dimension_center(dimension):
-    return floor(dimension / 2)
+def _dimension_center(num_tiles):
+    return floor(num_tiles / 2)
 
 
 def _board_center(board_size):
-    return tuple(map(_dimension_center, board_size))
+    x = _dimension_center(board_size.x)
+    y = _dimension_center(board_size.y)
+    return Tiles(x, y)
 
 
-def _dimension_random(dimension):
-    return randint(0, dimension - 1)
+def _dimension_random(num_tiles):
+    return randint(0, num_tiles - 1)
 
 
 def _board_random(board_size):
-    return _dimension_random(board_size[0]), _dimension_random(board_size[1])
+    x = _dimension_random(board_size.x)
+    y = _dimension_random(board_size.y)
+    return Tiles(x, y)
 
 
 def _in_board(board_size, pos):
-    in_h = 0 <= pos[0] < board_size[0]
-    in_v = 0 <= pos[1] < board_size[1]
+    in_h = 0 <= pos.x < board_size.x
+    in_v = 0 <= pos.y < board_size.y
     return in_h and in_v
 
 
@@ -49,12 +57,13 @@ def _in_snake(snake):
 
 
 def _initial_snake(board_size):
-    # return [(4, 2), (3, 2), (2, 2), (1, 2), (0, 2), (0, 1)]
     return [_board_center(board_size)]
 
 
 def _move(pos, direction):
-    return pos[0] + direction[0], pos[1] + direction[1]
+    x = pos.x + direction[0]
+    y = pos.y + direction[1]
+    return Tiles(x, y)
 
 
 def _snake_head(snake):

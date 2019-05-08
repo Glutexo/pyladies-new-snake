@@ -1,3 +1,4 @@
+from collections import namedtuple
 from itertools import chain
 from os.path import join
 from pyglet.app import run
@@ -10,7 +11,9 @@ from pyglet.window.key import DOWN, LEFT, RIGHT, UP
 
 __all__ = ["init"]
 
-_TILE_SIZE = (64, 64)
+_Pixels = namedtuple("_Pixels", ("x", "y"))
+
+_TILE_SIZE = _Pixels(64, 64)
 _SNAKE_IMAGE = join("resources", "tail-head.png")
 _FOOD_IMAGE = join("resources", "apple.png")
 
@@ -27,14 +30,22 @@ class _Images:
         self.food = load(_FOOD_IMAGE)
 
 
-def _in_pixels(tiles):
-    width = tiles[0] * _TILE_SIZE[0]
-    height = tiles[1] * _TILE_SIZE[1]
-    return width, height
+def _tiles_to_pixels_x(num_tiles):
+    return num_tiles * _TILE_SIZE.x
+
+
+def _tiles_to_pixels_y(num_tiles):
+    return num_tiles * _TILE_SIZE.y
+
+
+def _tiles_to_pixels(tiles):
+    pixels_x = _tiles_to_pixels_x(tiles.x)
+    pixels_y = _tiles_to_pixels_y(tiles.y)
+    return _Pixels(x=pixels_x, y=pixels_y)
 
 
 def _window(board_size):
-    window_width, window_height = _in_pixels(board_size)
+    window_width, window_height = _tiles_to_pixels(board_size)
     return Window(window_width, window_height, "Snake")
 
 
@@ -51,7 +62,7 @@ def _ensure_sprites(sprites, state, images):
 
 
 def _position_sprite(sprite, pos):
-    sprite.x, sprite.y = _in_pixels(pos)
+    sprite.x, sprite.y = _tiles_to_pixels(pos)
 
 
 def _position_sprites(sprites, state):
