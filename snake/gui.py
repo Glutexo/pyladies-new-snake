@@ -30,17 +30,9 @@ class _Images:
         self.food = load(_FOOD_IMAGE)
 
 
-def _tiles_to_pixels_x(num_tiles):
-    return num_tiles * _TILE_SIZE.x
-
-
-def _tiles_to_pixels_y(num_tiles):
-    return num_tiles * _TILE_SIZE.y
-
-
 def _tiles_to_pixels(tiles):
-    pixels_x = _tiles_to_pixels_x(tiles.x)
-    pixels_y = _tiles_to_pixels_y(tiles.y)
+    pixels_x = tiles.x * _TILE_SIZE.x
+    pixels_y = tiles.y * _TILE_SIZE.y
     return _Pixels(x=pixels_x, y=pixels_y)
 
 

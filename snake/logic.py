@@ -25,23 +25,17 @@ class CollisionWithSnake(Collision):
     pass
 
 
-def _dimension_center(num_tiles):
-    return floor(num_tiles / 2)
-
-
-def _board_center(board_size):
-    x = _dimension_center(board_size.x)
-    y = _dimension_center(board_size.y)
-    return Tiles(x, y)
-
-
-def _dimension_random(num_tiles):
+def _random(num_tiles):
     return randint(0, num_tiles - 1)
 
 
-def _board_random(board_size):
-    x = _dimension_random(board_size.x)
-    y = _dimension_random(board_size.y)
+def _center(num_tiles):
+    return floor(num_tiles / 2)
+
+
+def _board_pos(board_size, transformation):
+    x = transformation(board_size.x)
+    y = transformation(board_size.y)
     return Tiles(x, y)
 
 
@@ -56,7 +50,7 @@ def _in_snake(snake):
 
 
 def _initial_snake(board_size):
-    return [_board_center(board_size)]
+    return [_board_pos(board_size, _center)]
 
 
 def _move(pos, direction):
@@ -100,7 +94,7 @@ def _opposite_direction(direction):
 
 def _new_food(board_size, snake):
     while True:
-        food = _board_random(board_size)
+        food = _board_pos(board_size, _random)
         if food not in snake:
             return food
 
@@ -131,7 +125,7 @@ def _tick(board_size, state):
 
     state.snake = _extend_snake(state.snake, state.current_direction)
     if _snake_head(state.snake) == state.food:
-        state.food = _board_random(board_size)
+        state.food = _new_food(board_size, state.snake)
     else:
         state.snake = _contract_snake(state.snake)
     _check_collision(state.board_size, state.snake)
