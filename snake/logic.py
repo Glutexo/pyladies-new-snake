@@ -119,6 +119,7 @@ def _turn(direction, state):
 def _turn_func(direction):
     def turn(state):
         return _turn(direction, state)
+
     return turn
 
 

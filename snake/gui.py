@@ -18,7 +18,10 @@ _SNAKE_IMAGE = join("resources", "tail-head.png")
 _FOOD_IMAGE = join("resources", "apple.png")
 
 _KEY_MAPPING = {
-    UP: "turn_up", DOWN: "turn_down", LEFT: "turn_left", RIGHT: "turn_right"
+    UP: "turn_up",
+    DOWN: "turn_down",
+    LEFT: "turn_left",
+    RIGHT: "turn_right",
 }
 
 
@@ -26,7 +29,7 @@ class _Sprites:
     def __init__(self):
         self.snake = []
         self.food = None
-        
+
 
 class _Images:
     def __init__(self):
@@ -72,6 +75,7 @@ def init(board_size, snake_speed, initial_state, logic_events):
     def create_interval(current_state):
         def interval(dt):
             return logic_events.tick(board_size, current_state)
+
         return interval
 
     def create_on_key_press(current_state):
@@ -82,6 +86,7 @@ def init(board_size, snake_speed, initial_state, logic_events):
                 return current_state
             else:
                 return logic_event(current_state)
+
         return on_key_press
 
     def state_changed(updated_state):
@@ -100,6 +105,7 @@ def init(board_size, snake_speed, initial_state, logic_events):
         def binding(*args, **kwargs):
             updated_state = gui_events[creator](*args, **kwargs)
             state_changed(updated_state)
+
         gui_events[creator] = None
         return binding
 
