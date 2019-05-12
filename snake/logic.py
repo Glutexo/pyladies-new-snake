@@ -6,9 +6,10 @@ from random import randint
 __all__ = ["Events", "initial_state", "Tiles"]
 
 
-Tiles = namedtuple("Tiles", ("x", "y"))
+_INITIAL_DIRECTION = (1, 0)
 
-_initial_direction = Tiles(1, 0)
+
+Tiles = namedtuple("Tiles", ("x", "y"))
 
 
 class Collision(RuntimeError):
@@ -56,15 +57,21 @@ def _check_collision(board_size, snake):
         raise CollisionWithSnake
 
 
-def _opposite_direction(direction):
-    return -direction.x, -direction.y
-
-
 def _new_food(board_size, snake):
     while True:
         food = _board_pos(board_size, _random)
         if food not in snake:
             return food
+
+
+class Direction(Tiles):
+    @classmethod
+    def initial(cls):
+        return cls(*_INITIAL_DIRECTION)
+
+    def opposite(self):
+        cls = type(self)
+        return cls(-self.x, -self.y)
 
 
 class Snake:
@@ -108,7 +115,8 @@ class State:
     def initial(cls, board_size):
         snake = Snake.initial(board_size)
         food = _new_food(board_size, snake)
-        return cls(snake, food, _initial_direction, _initial_direction)
+        direction = Direction.initial()
+        return cls(snake, food, direction, direction)
 
     def __init__(self, snake, food, current_direction, planned_direction):
         self.snake = snake
@@ -147,7 +155,7 @@ class Turn:
         self.direction = direction
 
     def __call__(self, state):
-        goes_backwards = self.direction == _opposite_direction(state.current_direction)
+        goes_backwards = self.direction == state.current_direction.opposite()
 
         void_movement = state.snake.body and goes_backwards
         if void_movement:
@@ -159,8 +167,8 @@ class Turn:
 class Events:
     def __init__(self, board_size):
         self.board_size = board_size
-        self.turn_up = Turn(Tiles(0, 1))
-        self.turn_down = Turn(Tiles(0, -1))
-        self.turn_left = Turn(Tiles(-1, 0))
-        self.turn_right = Turn(Tiles(1, 0))
+        self.turn_up = Turn(Direction(0, 1))
+        self.turn_down = Turn(Direction(0, -1))
+        self.turn_left = Turn(Direction(-1, 0))
+        self.turn_right = Turn(Direction(1, 0))
         self.tick = Tick(board_size)
