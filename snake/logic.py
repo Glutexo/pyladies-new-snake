@@ -3,7 +3,7 @@ from math import floor
 from random import randint
 
 
-__all__ = ["Events", "initial_state", "Tiles"]
+__all__ = ["Events", "Tiles"]
 
 
 _INITIAL_DIRECTION = (1, 0)
