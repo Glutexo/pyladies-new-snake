@@ -45,46 +45,16 @@ def _in_board(board_size, pos):
     return in_h and in_v
 
 
-def _in_snake(snake):
-    return _snake_head(snake) in _snake_body(snake)
-
-
-def _initial_snake(board_size):
-    return [_board_pos(board_size, _center)]
-
-
 def _move(pos, direction):
     x = pos.x + direction.x
     y = pos.y + direction.y
     return Tiles(x, y)
 
 
-def _snake_head(snake):
-    return snake[0]
-
-
-def _snake_body(snake):
-    return snake[1:]
-
-
-def _snake_has_body(snake):
-    return len(snake) > 1
-
-
-def _extend_snake(snake, direction):
-    old_snake_head = _snake_head(snake)
-    new_snake_head = _move(old_snake_head, direction)
-    return [new_snake_head] + snake
-
-
-def _contract_snake(snake):
-    return snake[:-1]
-
-
 def _check_collision(board_size, snake):
-    if not _in_board(board_size, _snake_head(snake)):
+    if not _in_board(board_size, snake.head):
         raise CollisionWithWall
-    if _in_snake(snake):
+    if snake.head in snake.body:
         raise CollisionWithSnake
 
 
@@ -100,9 +70,43 @@ def _new_food(board_size, snake):
 
 
 def initial_state(board_size):
-    snake = _initial_snake(board_size)
+    snake = Snake.initial(board_size)
     food = _new_food(board_size, snake)
     return State(snake, food, _initial_direction, _initial_direction)
+
+
+class Snake:
+    @classmethod
+    def initial(cls, board_size):
+        initial_pos = _board_pos(board_size, _center)
+        return cls([initial_pos])
+
+    def __init__(self, pos):
+        self.pos = pos
+
+    def __contains__(self, pos):
+        return pos in self.pos
+
+    def __len__(self):
+        return len(self.pos)
+
+    def __getitem__(self, key):
+        return self.pos[key]
+
+    @property
+    def head(self):
+        return self.pos[0]
+
+    @property
+    def body(self):
+        return self.pos[1:]
+
+    def extend(self, direction):
+        new_head = _move(self.head, direction)
+        return Snake([new_head] + self.pos)
+
+    def contract(self):
+        return Snake(self.pos[:-1])
 
 
 class Tick:
@@ -110,12 +114,12 @@ class Tick:
         self.board_size = board_size
 
     def __call__(self, state):
-        snake = _extend_snake(state.snake, state.planned_direction)
-        if _snake_head(snake) == state.food:
+        snake = state.snake.extend(state.planned_direction)
+        if snake.head == state.food:
             food = _new_food(self.board_size, snake)
         else:
             food = state.food
-            snake = _contract_snake(snake)
+            snake = snake.contract()
         _check_collision(self.board_size, snake)
 
         return tick(state, snake, food)
@@ -127,10 +131,9 @@ class Turn:
         self.direction = direction
 
     def __call__(self, state):
-        snake_has_body = _snake_has_body(state.snake)
         goes_backwards = self.direction == _opposite_direction(state.current_direction)
 
-        void_movement = snake_has_body and goes_backwards
+        void_movement = state.snake.body and goes_backwards
         if void_movement:
             return state
         else:
