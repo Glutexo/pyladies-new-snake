@@ -1,5 +1,4 @@
 from collections import namedtuple
-from enum import Enum
 from math import floor
 from random import randint
 from snake.state import State
