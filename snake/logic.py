@@ -2,7 +2,7 @@ from collections import namedtuple
 from enum import Enum
 from math import floor
 from random import randint
-from snake.state import State, tick, turn
+from snake.state import State
 
 
 __all__ = ["Events", "initial_state", "Tiles"]
@@ -122,7 +122,7 @@ class Tick:
             snake = snake.contract()
         _check_collision(self.board_size, snake)
 
-        return tick(state, snake, food)
+        return state.tick(snake, food)
 
 
 class Turn:
@@ -137,7 +137,7 @@ class Turn:
         if void_movement:
             return state
         else:
-            return turn(state, self.direction)
+            return state.turn(self.direction)
 
 
 class Events:
