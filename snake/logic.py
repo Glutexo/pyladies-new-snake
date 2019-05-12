@@ -95,10 +95,12 @@ class Snake:
 
     def extend(self, direction):
         new_head = _move(self.head, direction)
-        return Snake([new_head] + self.pos)
+        cls = type(self)
+        return cls([new_head] + self.pos)
 
     def contract(self):
-        return Snake(self.pos[:-1])
+        cls = type(self)
+        return cls(self.pos[:-1])
 
 
 class State:
@@ -115,10 +117,12 @@ class State:
         self.planned_direction = planned_direction
 
     def tick(self, snake, food):
-        return State(snake, food, self.planned_direction, self.planned_direction)
+        cls = type(self)
+        return cls(snake, food, self.planned_direction, self.planned_direction)
 
     def turn(self, direction):
-        return State(self.snake, self.food, self.current_direction, direction)
+        cls = type(self)
+        return cls(self.snake, self.food, self.current_direction, direction)
 
 
 class Tick:
