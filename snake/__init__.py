@@ -9,4 +9,5 @@ _INITIAL_SNAKE_SPEED = 1 / 2
 
 def run():
     state = initial_state(_BOARD_SIZE)
-    init(_BOARD_SIZE, _INITIAL_SNAKE_SPEED, state, Events)
+    events = Events(_BOARD_SIZE)
+    init(_BOARD_SIZE, _INITIAL_SNAKE_SPEED, state, events)

@@ -105,39 +105,43 @@ def initial_state(board_size):
     return State(snake, food, _initial_direction, _initial_direction)
 
 
-def _turn(direction, state):
-    snake_has_body = _snake_has_body(state.snake)
-    goes_backwards = direction == _opposite_direction(state.current_direction)
+class Tick:
+    def __init__(self, board_size):
+        self.board_size = board_size
 
-    void_movement = snake_has_body and goes_backwards
-    if void_movement:
-        return state
-    else:
-        return turn(state, direction)
+    def __call__(self, state):
+        snake = _extend_snake(state.snake, state.planned_direction)
+        if _snake_head(snake) == state.food:
+            food = _new_food(self.board_size, snake)
+        else:
+            food = state.food
+            snake = _contract_snake(snake)
+        _check_collision(self.board_size, snake)
 
-
-def _turn_func(direction):
-    def turn(state):
-        return _turn(direction, state)
-
-    return turn
+        return tick(state, snake, food)
 
 
-def _tick(board_size, state):
-    snake = _extend_snake(state.snake, state.planned_direction)
-    if _snake_head(snake) == state.food:
-        food = _new_food(board_size, snake)
-    else:
-        food = state.food
-        snake = _contract_snake(snake)
-    _check_collision(board_size, snake)
+class Turn:
 
-    return tick(state, snake, food)
+    def __init__(self, direction):
+        self.direction = direction
+
+    def __call__(self, state):
+        snake_has_body = _snake_has_body(state.snake)
+        goes_backwards = self.direction == _opposite_direction(state.current_direction)
+
+        void_movement = snake_has_body and goes_backwards
+        if void_movement:
+            return state
+        else:
+            return turn(state, self.direction)
 
 
-class Events(Enum):
-    turn_up = _turn_func(Tiles(0, 1))
-    turn_down = _turn_func(Tiles(0, -1))
-    turn_left = _turn_func(Tiles(-1, 0))
-    turn_right = _turn_func(Tiles(1, 0))
-    tick = _tick
+class Events:
+    def __init__(self, board_size):
+        self.board_size = board_size
+        self.turn_up = Turn(Tiles(0, 1))
+        self.turn_down = Turn(Tiles(0, -1))
+        self.turn_left = Turn(Tiles(-1, 0))
+        self.turn_right = Turn(Tiles(1, 0))
+        self.tick = Tick(board_size)

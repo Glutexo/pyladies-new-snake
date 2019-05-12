@@ -74,7 +74,7 @@ def _position_sprites(sprites, state):
 def init(board_size, snake_speed, initial_state, logic_events):
     def create_interval(current_state):
         def interval(dt):
-            return logic_events.tick(board_size, current_state)
+            return logic_events.tick(current_state)
 
         return interval
 
