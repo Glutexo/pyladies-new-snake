@@ -45,7 +45,7 @@ def _tiles_to_pixels(tiles):
 
 def _window(board_size):
     window_width, window_height = _tiles_to_pixels(board_size)
-    return Window(window_width, window_height, "Snake")
+    return Window(window_width, window_height, "_Snake")
 
 
 def _ensure_sprites(sprites, state, images):
@@ -54,7 +54,7 @@ def _ensure_sprites(sprites, state, images):
         for _ in range(num_sprites_to_add):
             sprites.snake.append(Sprite(images.snake))
 
-    # Snake can only grow. No need to check len(sprites.snake) > len(state.snake).
+    # _Snake can only grow. No need to check len(sprites.snake) > len(state.snake).
 
     if not sprites.food:
         sprites.food = Sprite(images.food)

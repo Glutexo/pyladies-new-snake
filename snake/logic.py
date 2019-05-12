@@ -3,21 +3,21 @@ from math import floor
 from random import randint
 
 
-__all__ = ["Events", "Tiles"]
+__all__ = ["BoardSize", "Events", "State"]
 
 
 _INITIAL_DIRECTION = (1, 0)
 
 
-class Collision(RuntimeError):
+class _Collision(RuntimeError):
     pass
 
 
-class CollisionWithWall(Collision):
+class _CollisionWithWall(_Collision):
     pass
 
 
-class CollisionWithSnake(Collision):
+class _CollisionWithSnake(_Collision):
     pass
 
 
@@ -32,7 +32,7 @@ def _center(num_tiles):
 def _board_pos(board_size, transformation):
     x = transformation(board_size.x)
     y = transformation(board_size.y)
-    return BoardPos(x, y)
+    return _BoardPos(x, y)
 
 
 def _in_board(board_size, pos):
@@ -43,9 +43,9 @@ def _in_board(board_size, pos):
 
 def _check_collision(board_size, snake):
     if not _in_board(board_size, snake.head):
-        raise CollisionWithWall
+        raise _CollisionWithWall
     if snake.head in snake.body:
-        raise CollisionWithSnake
+        raise _CollisionWithSnake
 
 
 def _new_food(board_size, snake):
@@ -55,11 +55,11 @@ def _new_food(board_size, snake):
             return food
 
 
-class Tiles(namedtuple("Tiles", ("x", "y"))):
+class _Tiles(namedtuple("_Tiles", ("x", "y"))):
     pass
 
 
-class BoardPos(Tiles):
+class _BoardPos(_Tiles):
     def move(self, direction):
         x = self.x + direction.x
         y = self.y + direction.y
@@ -67,7 +67,7 @@ class BoardPos(Tiles):
         return cls(x, y)
 
 
-class Direction(namedtuple("Direction", ("x", "y"))):
+class _Direction(namedtuple("_Direction", ("x", "y"))):
     @classmethod
     def initial(cls):
         return cls(*_INITIAL_DIRECTION)
@@ -77,7 +77,7 @@ class Direction(namedtuple("Direction", ("x", "y"))):
         return cls(-self.x, -self.y)
 
 
-class Snake:
+class _Snake:
     @classmethod
     def initial(cls, board_size):
         initial_pos = _board_pos(board_size, _center)
@@ -113,26 +113,7 @@ class Snake:
         return cls(self.pos[:-1])
 
 
-class State(
-    namedtuple("State", ("snake", "food", "current_direction", "planned_direction"))
-):
-    @classmethod
-    def initial(cls, board_size):
-        snake = Snake.initial(board_size)
-        food = _new_food(board_size, snake)
-        direction = Direction.initial()
-        return cls(snake, food, direction, direction)
-
-    def tick(self, snake, food):
-        cls = type(self)
-        return cls(snake, food, self.planned_direction, self.planned_direction)
-
-    def turn(self, direction):
-        cls = type(self)
-        return cls(self.snake, self.food, self.current_direction, direction)
-
-
-class Tick(namedtuple("Tick", ("board_size",))):
+class _Tick(namedtuple("_Tick", ("board_size",))):
     def __call__(self, state):
         snake = state.snake.extend(state.planned_direction)
         if snake.head == state.food:
@@ -145,7 +126,7 @@ class Tick(namedtuple("Tick", ("board_size",))):
         return state.tick(snake, food)
 
 
-class Turn(namedtuple("Turn", ("direction",))):
+class _Turn(namedtuple("_Turn", ("direction",))):
 
     def __call__(self, state):
         goes_backwards = self.direction == state.current_direction.opposite()
@@ -157,11 +138,34 @@ class Turn(namedtuple("Turn", ("direction",))):
             return state.turn(self.direction)
 
 
+class BoardSize(_Tiles):
+    pass
+
+
+class State(
+    namedtuple("State", ("snake", "food", "current_direction", "planned_direction"))
+):
+    @classmethod
+    def initial(cls, board_size):
+        snake = _Snake.initial(board_size)
+        food = _new_food(board_size, snake)
+        direction = _Direction.initial()
+        return cls(snake, food, direction, direction)
+
+    def tick(self, snake, food):
+        cls = type(self)
+        return cls(snake, food, self.planned_direction, self.planned_direction)
+
+    def turn(self, direction):
+        cls = type(self)
+        return cls(self.snake, self.food, self.current_direction, direction)
+
+
 class Events:
     def __init__(self, board_size):
         self.board_size = board_size
-        self.turn_up = Turn(Direction(0, 1))
-        self.turn_down = Turn(Direction(0, -1))
-        self.turn_left = Turn(Direction(-1, 0))
-        self.turn_right = Turn(Direction(1, 0))
-        self.tick = Tick(board_size)
+        self.turn_up = _Turn(_Direction(0, 1))
+        self.turn_down = _Turn(_Direction(0, -1))
+        self.turn_left = _Turn(_Direction(-1, 0))
+        self.turn_right = _Turn(_Direction(1, 0))
+        self.tick = _Tick(board_size)
