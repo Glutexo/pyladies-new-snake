@@ -1,7 +1,6 @@
 from collections import namedtuple
 from math import floor
 from random import randint
-from snake.state import State
 
 
 __all__ = ["Events", "initial_state", "Tiles"]
@@ -68,12 +67,6 @@ def _new_food(board_size, snake):
             return food
 
 
-def initial_state(board_size):
-    snake = Snake.initial(board_size)
-    food = _new_food(board_size, snake)
-    return State(snake, food, _initial_direction, _initial_direction)
-
-
 class Snake:
     @classmethod
     def initial(cls, board_size):
@@ -106,6 +99,26 @@ class Snake:
 
     def contract(self):
         return Snake(self.pos[:-1])
+
+
+class State:
+    @classmethod
+    def initial(cls, board_size):
+        snake = Snake.initial(board_size)
+        food = _new_food(board_size, snake)
+        return cls(snake, food, _initial_direction, _initial_direction)
+
+    def __init__(self, snake, food, current_direction, planned_direction):
+        self.snake = snake
+        self.food = food
+        self.current_direction = current_direction
+        self.planned_direction = planned_direction
+
+    def tick(self, snake, food):
+        return State(snake, food, self.planned_direction, self.planned_direction)
+
+    def turn(self, direction):
+        return State(self.snake, self.food, self.current_direction, direction)
 
 
 class Tick:
