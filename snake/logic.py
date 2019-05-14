@@ -3,7 +3,7 @@ from math import floor
 from random import randint
 
 
-__all__ = ["BoardSize", "Events", "State"]
+__all__ = ["Board", "BoardSize", "Events", "State"]
 
 
 _INITIAL_DIRECTION = (1, 0)
@@ -21,36 +21,16 @@ class _CollisionWithSnake(_Collision):
     pass
 
 
-def _random(num_tiles):
-    return randint(0, num_tiles - 1)
-
-
-def _center(num_tiles):
-    return floor(num_tiles / 2)
-
-
-def _board_pos(board_size, transformation):
-    x = transformation(board_size.x)
-    y = transformation(board_size.y)
-    return _BoardPos(x, y)
-
-
-def _in_board(board_size, pos):
-    in_h = 0 <= pos.x < board_size.x
-    in_v = 0 <= pos.y < board_size.y
-    return in_h and in_v
-
-
-def _check_collision(board_size, snake):
-    if not _in_board(board_size, snake.head):
+def _check_collision(board, snake):
+    if snake.head not in board:
         raise _CollisionWithWall
     if snake.head in snake.body:
         raise _CollisionWithSnake
 
 
-def _new_food(board_size, snake):
+def _new_food(board, snake):
     while True:
-        food = _board_pos(board_size, _random)
+        food = board.random()
         if food not in snake:
             return food
 
@@ -79,8 +59,8 @@ class _Direction(namedtuple("_Direction", ("x", "y"))):
 
 class _Snake:
     @classmethod
-    def initial(cls, board_size):
-        initial_pos = _board_pos(board_size, _center)
+    def initial(cls, board):
+        initial_pos = board.center()
         return cls([initial_pos])
 
     def __init__(self, pos):
@@ -113,15 +93,15 @@ class _Snake:
         return cls(self.pos[:-1])
 
 
-class _Tick(namedtuple("_Tick", ("board_size",))):
+class _Tick(namedtuple("_Tick", ("board",))):
     def __call__(self, state):
         snake = state.snake.extend(state.planned_direction)
         if snake.head == state.food:
-            food = _new_food(self.board_size, snake)
+            food = _new_food(self.board, snake)
         else:
             food = state.food
             snake = snake.contract()
-        _check_collision(self.board_size, snake)
+        _check_collision(self.board, snake)
 
         return state.tick(snake, food)
 
@@ -142,13 +122,39 @@ class BoardSize(_Tiles):
     pass
 
 
+class Board(namedtuple("Board", ("size",))):
+    @staticmethod
+    def _center(num_tiles):
+        return floor(num_tiles / 2)
+
+    @staticmethod
+    def _random(num_tiles):
+        return randint(0, num_tiles - 1)
+
+    def _transform(self, transformation):
+        x = transformation(self.size.x)
+        y = transformation(self.size.y)
+        return _BoardPos(x, y)
+
+    def __contains__(self, pos):
+        in_h = 0 <= pos.x < self.size.x
+        in_v = 0 <= pos.y < self.size.y
+        return in_h and in_v
+
+    def center(self):
+        return self._transform(self._center)
+
+    def random(self):
+        return self._transform(self._random)
+
+
 class State(
     namedtuple("State", ("snake", "food", "current_direction", "planned_direction"))
 ):
     @classmethod
-    def initial(cls, board_size):
-        snake = _Snake.initial(board_size)
-        food = _new_food(board_size, snake)
+    def initial(cls, board):
+        snake = _Snake.initial(board)
+        food = _new_food(board, snake)
         direction = _Direction.initial()
         return cls(snake, food, direction, direction)
 
@@ -162,10 +168,10 @@ class State(
 
 
 class Events:
-    def __init__(self, board_size):
-        self.board_size = board_size
+    def __init__(self, board):
+        self.board_size = board.size
         self.turn_up = _Turn(_Direction(0, 1))
         self.turn_down = _Turn(_Direction(0, -1))
         self.turn_left = _Turn(_Direction(-1, 0))
         self.turn_right = _Turn(_Direction(1, 0))
-        self.tick = _Tick(board_size)
+        self.tick = _Tick(board)

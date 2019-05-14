@@ -43,8 +43,8 @@ def _tiles_to_pixels(tiles):
     return _Pixels(x=pixels_x, y=pixels_y)
 
 
-def _window(board_size):
-    window_width, window_height = _tiles_to_pixels(board_size)
+def _window(board):
+    window_width, window_height = _tiles_to_pixels(board.size)
     return Window(window_width, window_height, "_Snake")
 
 
@@ -71,7 +71,7 @@ def _position_sprites(sprites, state):
     _position_sprite(sprites.food, state.food)
 
 
-def init(board_size, snake_speed, initial_state, logic_events):
+def init(board, snake_speed, initial_state, logic_events):
     def create_interval(current_state):
         def interval(dt):
             return logic_events.tick(current_state)
@@ -114,7 +114,7 @@ def init(board_size, snake_speed, initial_state, logic_events):
     sprites = _Sprites()
     images = _Images()
 
-    window = _window(board_size)
+    window = _window(board)
     window.push_handlers(on_draw=draw, on_key_press=bind_event(create_on_key_press))
 
     schedule_interval(bind_event(create_interval), snake_speed)
