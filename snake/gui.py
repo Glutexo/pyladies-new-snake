@@ -101,36 +101,36 @@ def init(board, snake_speed, initial_state, logic_events):
 
         return on_key_press
 
-    def state_changed(updated_state):
+    def state_changed(updated_state, sprites, images):
         sprites.ensure(updated_state, images)
         sprites.position(updated_state)
 
         for event_creator in gui_events:
             gui_events[event_creator] = event_creator(updated_state)
 
-    def create_draw(window):
+    def create_draw(window, sprites):
         def draw():
             window.clear()
             sprites.draw()
         return draw
 
-    def bind_event(creator):
+    def bind_event(creator, sprites, images):
         def binding(*args, **kwargs):
             updated_state = gui_events[creator](*args, **kwargs)
-            state_changed(updated_state)
+            state_changed(updated_state, sprites, images)
 
         gui_events[creator] = None
         return binding
 
     gui_events = {}
 
-    sprites = _Sprites()
-    images = _Images()
+    _sprites = _Sprites()
+    _images = _Images()
 
     _window = _Window(board)
-    _window.bind_events(create_draw(_window), bind_event(create_on_key_press))
+    _window.bind_events(create_draw(_window, _sprites), bind_event(create_on_key_press, _sprites, _images))
 
-    schedule_interval(bind_event(create_interval), snake_speed)
+    schedule_interval(bind_event(create_interval, _sprites, _images), snake_speed)
 
-    state_changed(initial_state)
+    state_changed(initial_state, _sprites, _images)
     run()
