@@ -30,6 +30,13 @@ class _Sprites:
         self.snake = []
         self.food = None
 
+    def draw(self):
+        for sprite in self._all():
+            sprite.draw()
+
+    def _all(self):
+        return chain(self.snake, [self.food])
+
 
 class _Images:
     def __init__(self):
@@ -98,8 +105,7 @@ def init(board, snake_speed, initial_state, logic_events):
 
     def draw():
         window.clear()
-        for sprite in chain(sprites.snake, [sprites.food]):
-            sprite.draw()
+        sprites.draw()
 
     def bind_event(creator):
         def binding(*args, **kwargs):
