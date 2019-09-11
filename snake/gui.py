@@ -44,15 +44,22 @@ class _Images:
         self.food = load(_FOOD_IMAGE)
 
 
+class _Window:
+    def __init__(self, board):
+        window_width, window_height = _tiles_to_pixels(board.size)
+        self._window = Window(window_width, window_height, "_Snake")
+
+    def clear(self):
+        self._window.clear()
+
+    def bind_events(self, on_draw, on_key_press):
+        self._window.push_handlers(on_draw=on_draw, on_key_press=on_key_press)
+
+
 def _tiles_to_pixels(tiles):
     pixels_x = tiles.x * _TILE_SIZE.x
     pixels_y = tiles.y * _TILE_SIZE.y
     return _Pixels(x=pixels_x, y=pixels_y)
-
-
-def _window(board):
-    window_width, window_height = _tiles_to_pixels(board.size)
-    return Window(window_width, window_height, "_Snake")
 
 
 def _ensure_sprites(sprites, state, images):
@@ -103,9 +110,11 @@ def init(board, snake_speed, initial_state, logic_events):
         for event_creator in gui_events:
             gui_events[event_creator] = event_creator(updated_state)
 
-    def draw():
-        window.clear()
-        sprites.draw()
+    def create_draw(window):
+        def draw():
+            window.clear()
+            sprites.draw()
+        return draw
 
     def bind_event(creator):
         def binding(*args, **kwargs):
@@ -120,8 +129,8 @@ def init(board, snake_speed, initial_state, logic_events):
     sprites = _Sprites()
     images = _Images()
 
-    window = _window(board)
-    window.push_handlers(on_draw=draw, on_key_press=bind_event(create_on_key_press))
+    _window = _Window(board)
+    _window.bind_events(create_draw(_window), bind_event(create_on_key_press))
 
     schedule_interval(bind_event(create_interval), snake_speed)
 
