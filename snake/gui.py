@@ -26,6 +26,10 @@ _KEY_MAPPING = {
 
 
 class _Sprites:
+    @staticmethod
+    def _position_sprite(sprite, pos):
+        sprite.x, sprite.y = _tiles_to_pixels(pos)
+
     def __init__(self):
         self.snake = []
         self.food = None
@@ -33,6 +37,23 @@ class _Sprites:
     def draw(self):
         for sprite in self._all():
             sprite.draw()
+
+    def ensure(self, state, images):
+        if len(state.snake) > len(self.snake):
+            num_sprites_to_add = len(state.snake) - len(self.snake)
+            for _ in range(num_sprites_to_add):
+                self.snake.append(Sprite(images.snake))
+
+        # _Snake can only grow. No need to check len(sprites.snake) > len(state.snake).
+
+        if not self.food:
+            self.food = Sprite(images.food)
+
+    def position(self, state):
+        for i, sprite in enumerate(self.snake):
+            self._position_sprite(sprite, state.snake[i])
+
+        self._position_sprite(self.food, state.food)
 
     def _all(self):
         return chain(self.snake, [self.food])
@@ -62,29 +83,6 @@ def _tiles_to_pixels(tiles):
     return _Pixels(x=pixels_x, y=pixels_y)
 
 
-def _ensure_sprites(sprites, state, images):
-    if len(state.snake) > len(sprites.snake):
-        num_sprites_to_add = len(state.snake) - len(sprites.snake)
-        for _ in range(num_sprites_to_add):
-            sprites.snake.append(Sprite(images.snake))
-
-    # _Snake can only grow. No need to check len(sprites.snake) > len(state.snake).
-
-    if not sprites.food:
-        sprites.food = Sprite(images.food)
-
-
-def _position_sprite(sprite, pos):
-    sprite.x, sprite.y = _tiles_to_pixels(pos)
-
-
-def _position_sprites(sprites, state):
-    for i, sprite in enumerate(sprites.snake):
-        _position_sprite(sprite, state.snake[i])
-
-    _position_sprite(sprites.food, state.food)
-
-
 def init(board, snake_speed, initial_state, logic_events):
     def create_interval(current_state):
         def interval(dt):
@@ -104,8 +102,8 @@ def init(board, snake_speed, initial_state, logic_events):
         return on_key_press
 
     def state_changed(updated_state):
-        _ensure_sprites(sprites, updated_state, images)
-        _position_sprites(sprites, updated_state)
+        sprites.ensure(updated_state, images)
+        sprites.position(updated_state)
 
         for event_creator in gui_events:
             gui_events[event_creator] = event_creator(updated_state)
