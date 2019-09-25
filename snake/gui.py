@@ -83,6 +83,31 @@ def _tiles_to_pixels(tiles):
     return _Pixels(x=pixels_x, y=pixels_y)
 
 
+def state_changed(gui_events, updated_state, sprites, images):
+    sprites.ensure(updated_state, images)
+    sprites.position(updated_state)
+
+    for event_creator in gui_events:
+        gui_events[event_creator] = event_creator(updated_state)
+
+
+def bind_event(gui_events, creator, sprites, images):
+    def binding(*args, **kwargs):
+        updated_state = gui_events[creator](*args, **kwargs)
+        state_changed(gui_events, updated_state, sprites, images)
+
+    gui_events[creator] = None
+    return binding
+
+
+def create_draw(window, sprites):
+    def draw():
+        window.clear()
+        sprites.draw()
+
+    return draw
+
+
 def init(board, snake_speed, initial_state, logic_events):
     def create_interval(current_state):
         def interval(dt):
@@ -101,36 +126,15 @@ def init(board, snake_speed, initial_state, logic_events):
 
         return on_key_press
 
-    def state_changed(updated_state, sprites, images):
-        sprites.ensure(updated_state, images)
-        sprites.position(updated_state)
-
-        for event_creator in gui_events:
-            gui_events[event_creator] = event_creator(updated_state)
-
-    def create_draw(window, sprites):
-        def draw():
-            window.clear()
-            sprites.draw()
-        return draw
-
-    def bind_event(creator, sprites, images):
-        def binding(*args, **kwargs):
-            updated_state = gui_events[creator](*args, **kwargs)
-            state_changed(updated_state, sprites, images)
-
-        gui_events[creator] = None
-        return binding
-
     gui_events = {}
 
-    _sprites = _Sprites()
-    _images = _Images()
+    sprites = _Sprites()
+    images = _Images()
 
-    _window = _Window(board)
-    _window.bind_events(create_draw(_window, _sprites), bind_event(create_on_key_press, _sprites, _images))
+    window = _Window(board)
+    window.bind_events(create_draw(window, sprites), bind_event(gui_events, create_on_key_press, sprites, images))
 
-    schedule_interval(bind_event(create_interval, _sprites, _images), snake_speed)
+    schedule_interval(bind_event(gui_events, create_interval, sprites, images), snake_speed)
 
-    state_changed(initial_state, _sprites, _images)
+    state_changed(gui_events, initial_state, sprites, images)
     run()
