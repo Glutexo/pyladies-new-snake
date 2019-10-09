@@ -110,25 +110,28 @@ def _tiles_to_pixels(tiles):
     return _Pixels(x=pixels_x, y=pixels_y)
 
 
-def create_draw(window, sprites):
-    def draw():
-        window.clear()
-        sprites.draw()
+class _EventCreator:
+    def __init__(self, logic_events):
+        self.logic_events = logic_events
 
-    return draw
+    @staticmethod
+    def draw(window, sprites):
+        def draw():
+            window.clear()
+            sprites.draw()
 
+        return draw
 
-def init(board, snake_speed, initial_state, logic_events):
-    def create_interval(current_state):
+    def interval(self, current_state):
         def interval(dt):
-            return logic_events.tick(current_state)
+            return self.logic_events.tick(current_state)
 
         return interval
 
-    def create_on_key_press(current_state):
+    def on_key_press(self, current_state):
         def on_key_press(symbol, modifier):
             try:
-                logic_event = getattr(logic_events, _KEY_MAPPING[symbol])
+                logic_event = getattr(self.logic_events, _KEY_MAPPING[symbol])
             except KeyError:
                 return current_state
             else:
@@ -136,14 +139,17 @@ def init(board, snake_speed, initial_state, logic_events):
 
         return on_key_press
 
+
+def init(board, snake_speed, initial_state, logic_events):
     sprites = _Sprites()
     images = _Images()
     binding = _EventBinding(sprites, images)
+    creator = _EventCreator(logic_events)
 
     window = _Window(board)
-    window.bind_events(create_draw(window, sprites), binding.bind(create_on_key_press))
+    window.bind_events(_EventCreator.draw(window, sprites), binding.bind(creator.on_key_press))
 
-    schedule_interval(binding.bind(create_interval), snake_speed)
+    schedule_interval(binding.bind(creator.interval), snake_speed)
 
     binding.state_changed(initial_state)
     run()
