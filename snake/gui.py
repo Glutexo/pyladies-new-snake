@@ -92,9 +92,14 @@ class _EventBinding:
         return binding
 
     def state_changed(self, updated_state):
+        self._update_sprites(updated_state)
+        self._update_binding(updated_state)
+
+    def _update_sprites(self, updated_state):
         self.sprites.ensure(updated_state, self.images)
         self.sprites.position(updated_state)
 
+    def _update_binding(self, updated_state):
         for event_creator in self.binding:
             self.binding[event_creator] = event_creator(updated_state)
 
