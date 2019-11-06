@@ -50,10 +50,10 @@ class _Sprites(namedtuple("_Sprites", ("snake", "food"))):
         return _Sprites(snake, food)
 
     def position(self, state):
-        for i, sprite in enumerate(self.snake):
-            self._position_sprite(sprite, state.snake[i])
-
-        self._position_sprite(self.food, state.food)
+        snake = zip(self.snake, state.snake)
+        food = ((self.food, state.food),)
+        for sprite, pos in chain(snake, food):
+            self._position_sprite(sprite, pos)
 
     def _all(self):
         return chain(self.snake, [self.food])
