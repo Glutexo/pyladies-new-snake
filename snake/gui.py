@@ -25,56 +25,57 @@ _KEY_MAPPING = {
 }
 
 
-class _Sprites(namedtuple("_Sprites", ("snake", "food"))):
-    @staticmethod
-    def _position_sprite(sprite, pos):
-        sprite.x, sprite.y = _tiles_to_pixels(pos)
-
-    @classmethod
-    def empty(cls):
-        return cls([], None)
-
-    def draw(self):
-        for sprite in self._all():
-            sprite.draw()
-
-    def update(self, state, images):
-        sprites = self._ensure(state, images)
-        sprites.position(state)
-        return sprites
-
-    def position(self, state):
-        snake = zip(self.snake, state.snake)
-        food = ((self.food, state.food),)
-        for sprite, pos in chain(snake, food):
-            self._position_sprite(sprite, pos)
-
-    def _ensure(self, state, images):
-        sprites_to_add = []
-        num_sprites_to_add = len(state.snake) - len(self.snake)
-        if num_sprites_to_add > 0:  # _Snake can only grow. No need to handle negatives.
-            sprites_to_add.append(Sprite(images.snake))
-
-        snake = self.snake + sprites_to_add
-        food = self.food or Sprite(images.food)
-
-        return _Sprites(snake, food)
-
-    def _all(self):
-        return chain(self.snake, [self.food])
-
-
 class _Images:
     def __init__(self):
         self.snake = load(_SNAKE_IMAGE)
         self.food = load(_FOOD_IMAGE)
 
 
+class _Sprites:
+    @staticmethod
+    def _position_sprite(sprite, pos):
+        sprite.x, sprite.y = _tiles_to_pixels(pos)
+
+    def __init__(self, images=None, snake=None, food=None):
+        self._images = _Images() if images is None else images
+        self._snake = [] if snake is None else snake
+        self._food = food
+
+    def draw(self):
+        for sprite in self._all():
+            sprite.draw()
+
+    def update(self, state):
+        sprites = self._ensure(state)
+        sprites.position(state)
+        return sprites
+
+    def position(self, state):
+        snake = zip(self._snake, state.snake)
+        food = ((self._food, state.food),)
+        for sprite, pos in chain(snake, food):
+            self._position_sprite(sprite, pos)
+
+    def _ensure(self, state):
+        sprites_to_add = []
+        num_sprites_to_add = len(state.snake) - len(self._snake)
+        if num_sprites_to_add > 0:  # _Snake can only grow. No need to handle negatives.
+            sprites_to_add.append(Sprite(self._images.snake))
+
+        snake = self._snake + sprites_to_add
+        food = self._food or Sprite(self._images.food)
+
+        return _Sprites(self._images, snake, food)
+
+    def _all(self):
+        return chain(self._snake, [self._food])
+
+
 class _Window:
     def __init__(self, board):
         window_width, window_height = _tiles_to_pixels(board.size)
         self._window = Window(window_width, window_height, "_Snake")
-        self._sprites = _Sprites.empty()
+        self._sprites = _Sprites()
 
     def clear(self):
         self._window.clear()
@@ -82,18 +83,17 @@ class _Window:
     def draw_sprites(self):
         self._sprites.draw()
 
-    def update_sprites(self, updated_state, images):
-        self._sprites = self._sprites.update(updated_state, images)
+    def update_sprites(self, updated_state):
+        self._sprites = self._sprites.update(updated_state)
 
     def bind_events(self, on_draw, on_key_press):
         self._window.push_handlers(on_draw=on_draw, on_key_press=on_key_press)
 
 
 class _EventBinding:
-    def __init__(self, window, images):
+    def __init__(self, window):
         self.binding = {}
         self.window = window
-        self.images = images
 
     def bind(self, event_creator):
         def binding(*args, **kwargs):
@@ -104,7 +104,7 @@ class _EventBinding:
         return binding
 
     def state_changed(self, updated_state):
-        self.window.update_sprites(updated_state, self.images)
+        self.window.update_sprites(updated_state)
         self._update_binding(updated_state)
 
     def _update_binding(self, updated_state):
@@ -150,8 +150,7 @@ class _EventCreator:
 
 def init(board, snake_speed, initial_state, logic_events):
     window = _Window(board)
-    images = _Images()
-    binding = _EventBinding(window, images)
+    binding = _EventBinding(window)
     creator = _EventCreator(window, logic_events)
 
     window.bind_events(creator.draw(), binding.bind(creator.on_key_press))
