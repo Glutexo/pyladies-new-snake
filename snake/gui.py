@@ -25,29 +25,29 @@ _KEY_MAPPING = {
 }
 
 
-class _Sprites:
+class _Sprites(namedtuple("_Sprites", ("snake", "food"))):
     @staticmethod
     def _position_sprite(sprite, pos):
         sprite.x, sprite.y = _tiles_to_pixels(pos)
 
-    def __init__(self):
-        self.snake = []
-        self.food = None
+    @classmethod
+    def empty(cls):
+        return cls([], None)
 
     def draw(self):
         for sprite in self._all():
             sprite.draw()
 
     def ensure(self, state, images):
-        if len(state.snake) > len(self.snake):
-            num_sprites_to_add = len(state.snake) - len(self.snake)
-            for _ in range(num_sprites_to_add):
-                self.snake.append(Sprite(images.snake))
+        sprites_to_add = []
+        num_sprites_to_add = len(state.snake) - len(self.snake)
+        if num_sprites_to_add > 0:  # _Snake can only grow. No need to handle negatives.
+            sprites_to_add.append(Sprite(images.snake))
 
-        # _Snake can only grow. No need to check len(sprites.snake) > len(state.snake).
+        snake = self.snake + sprites_to_add
+        food = self.food or Sprite(images.food)
 
-        if not self.food:
-            self.food = Sprite(images.food)
+        return _Sprites(snake, food)
 
     def position(self, state):
         for i, sprite in enumerate(self.snake):
@@ -69,18 +69,26 @@ class _Window:
     def __init__(self, board):
         window_width, window_height = _tiles_to_pixels(board.size)
         self._window = Window(window_width, window_height, "_Snake")
+        self._sprites = _Sprites.empty()
 
     def clear(self):
         self._window.clear()
+
+    def draw_sprites(self):
+        self._sprites.draw()
+
+    def update_sprites(self, updated_state, images):
+        self._sprites = self._sprites.ensure(updated_state, images)
+        self._sprites.position(updated_state)
 
     def bind_events(self, on_draw, on_key_press):
         self._window.push_handlers(on_draw=on_draw, on_key_press=on_key_press)
 
 
 class _EventBinding:
-    def __init__(self, sprites, images):
+    def __init__(self, window, images):
         self.binding = {}
-        self.sprites = sprites
+        self.window = window
         self.images = images
 
     def bind(self, event_creator):
@@ -92,12 +100,8 @@ class _EventBinding:
         return binding
 
     def state_changed(self, updated_state):
-        self._update_sprites(updated_state)
+        self.window.update_sprites(updated_state, self.images)
         self._update_binding(updated_state)
-
-    def _update_sprites(self, updated_state):
-        self.sprites.ensure(updated_state, self.images)
-        self.sprites.position(updated_state)
 
     def _update_binding(self, updated_state):
         for event_creator in self.binding:
@@ -111,22 +115,22 @@ def _tiles_to_pixels(tiles):
 
 
 class _EventCreator:
-    def __init__(self, logic_events):
+    def __init__(self, window, logic_events):
+        self.window = window
         self.logic_events = logic_events
-
-    @staticmethod
-    def draw(window, sprites):
-        def draw():
-            window.clear()
-            sprites.draw()
-
-        return draw
 
     def interval(self, current_state):
         def interval(dt):
             return self.logic_events.tick(current_state)
 
         return interval
+
+    def draw(self):
+        def draw():
+            self.window.clear()
+            self.window.draw_sprites()
+
+        return draw
 
     def on_key_press(self, current_state):
         def on_key_press(symbol, modifier):
@@ -141,13 +145,12 @@ class _EventCreator:
 
 
 def init(board, snake_speed, initial_state, logic_events):
-    sprites = _Sprites()
-    images = _Images()
-    binding = _EventBinding(sprites, images)
-    creator = _EventCreator(logic_events)
-
     window = _Window(board)
-    window.bind_events(_EventCreator.draw(window, sprites), binding.bind(creator.on_key_press))
+    images = _Images()
+    binding = _EventBinding(window, images)
+    creator = _EventCreator(window, logic_events)
+
+    window.bind_events(creator.draw(), binding.bind(creator.on_key_press))
 
     schedule_interval(binding.bind(creator.interval), snake_speed)
 
