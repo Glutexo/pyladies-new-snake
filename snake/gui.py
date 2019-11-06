@@ -38,7 +38,18 @@ class _Sprites(namedtuple("_Sprites", ("snake", "food"))):
         for sprite in self._all():
             sprite.draw()
 
-    def ensure(self, state, images):
+    def update(self, state, images):
+        sprites = self._ensure(state, images)
+        sprites.position(state)
+        return sprites
+
+    def position(self, state):
+        snake = zip(self.snake, state.snake)
+        food = ((self.food, state.food),)
+        for sprite, pos in chain(snake, food):
+            self._position_sprite(sprite, pos)
+
+    def _ensure(self, state, images):
         sprites_to_add = []
         num_sprites_to_add = len(state.snake) - len(self.snake)
         if num_sprites_to_add > 0:  # _Snake can only grow. No need to handle negatives.
@@ -48,12 +59,6 @@ class _Sprites(namedtuple("_Sprites", ("snake", "food"))):
         food = self.food or Sprite(images.food)
 
         return _Sprites(snake, food)
-
-    def position(self, state):
-        snake = zip(self.snake, state.snake)
-        food = ((self.food, state.food),)
-        for sprite, pos in chain(snake, food):
-            self._position_sprite(sprite, pos)
 
     def _all(self):
         return chain(self.snake, [self.food])
@@ -78,8 +83,7 @@ class _Window:
         self._sprites.draw()
 
     def update_sprites(self, updated_state, images):
-        self._sprites = self._sprites.ensure(updated_state, images)
-        self._sprites.position(updated_state)
+        self._sprites = self._sprites.update(updated_state, images)
 
     def bind_events(self, on_draw, on_key_press):
         self._window.push_handlers(on_draw=on_draw, on_key_press=on_key_press)
