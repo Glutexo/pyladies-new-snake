@@ -38,9 +38,13 @@ class _Sprites:
     def _position_sprite(sprite, pos):
         sprite.x, sprite.y = _tiles_to_pixels(pos)
 
-    def __init__(self, images=None, snake=None, food=None):
-        self._images = _Images() if images is None else images
-        self._snake = [] if snake is None else snake
+    @classmethod
+    def initialize(cls):
+        return cls(_Images(), [], None)
+
+    def __init__(self, images, snake, food):
+        self._images = images
+        self._snake = snake
         self._food = food
 
     def draw(self):
@@ -78,16 +82,18 @@ class _Window:
     def _window_size(board_size):
         return _tiles_to_pixels(board_size)
 
-    def __init__(self, board):
+    @classmethod
+    def initialize(cls, board):
+        return cls(board, _Sprites.initialize())
+
+    def __init__(self, board, sprites):
         window_size = self._window_size(board.size)
         self._window = Window(window_size.x, window_size.y, _WINDOW_TITLE)
-        self._sprites = _Sprites()
+        self._sprites = sprites
 
-    def clear(self):
-        self._window.clear()
-
-    def draw_sprites(self):
-        self._sprites.draw()
+    def redraw(self):
+        self._clear()
+        self._draw_sprites()
 
     def update_sprites(self, updated_state):
         self._sprites = self._sprites.update(updated_state)
@@ -95,27 +101,33 @@ class _Window:
     def bind_events(self, on_draw, on_key_press):
         self._window.push_handlers(on_draw=on_draw, on_key_press=on_key_press)
 
+    def _clear(self):
+        self._window.clear()
+
+    def _draw_sprites(self):
+        self._sprites.draw()
+
 
 class _EventBinding:
     def __init__(self, window):
-        self.binding = {}
-        self.window = window
+        self._binding = {}
+        self._window = window
 
     def bind(self, event_creator):
         def binding(*args, **kwargs):
-            updated_state = self.binding[event_creator](*args, **kwargs)
+            updated_state = self._binding[event_creator](*args, **kwargs)
             self.state_changed(updated_state)
 
-        self.binding[event_creator] = None
+        self._binding[event_creator] = None
         return binding
 
     def state_changed(self, updated_state):
-        self.window.update_sprites(updated_state)
+        self._window.update_sprites(updated_state)
         self._update_binding(updated_state)
 
     def _update_binding(self, updated_state):
-        for event_creator in self.binding:
-            self.binding[event_creator] = event_creator(updated_state)
+        for event_creator in self._binding:
+            self._binding[event_creator] = event_creator(updated_state)
 
 
 def _tiles_to_pixels(tiles):
@@ -137,8 +149,7 @@ class _EventCreator:
 
     def draw(self):
         def draw():
-            self.window.clear()
-            self.window.draw_sprites()
+            self.window.redraw()
 
         return draw
 
@@ -155,7 +166,7 @@ class _EventCreator:
 
 
 def init(board, snake_speed, initial_state, logic_events):
-    window = _Window(board)
+    window = _Window.initialize(board)
     binding = _EventBinding(window)
     creator = _EventCreator(window, logic_events)
 
