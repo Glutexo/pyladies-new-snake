@@ -17,6 +17,8 @@ _TILE_SIZE = _Pixels(64, 64)
 _SNAKE_IMAGE = join("resources", "tail-head.png")
 _FOOD_IMAGE = join("resources", "apple.png")
 
+_WINDOW_TITLE = "Snake"
+
 _KEY_MAPPING = {
     UP: "turn_up",
     DOWN: "turn_down",
@@ -72,9 +74,13 @@ class _Sprites:
 
 
 class _Window:
+    @staticmethod
+    def _window_size(board_size):
+        return _tiles_to_pixels(board_size)
+
     def __init__(self, board):
-        window_width, window_height = _tiles_to_pixels(board.size)
-        self._window = Window(window_width, window_height, "_Snake")
+        window_size = self._window_size(board.size)
+        self._window = Window(window_size.x, window_size.y, _WINDOW_TITLE)
         self._sprites = _Sprites()
 
     def clear(self):
