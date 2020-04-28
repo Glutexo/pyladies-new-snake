@@ -28,7 +28,11 @@ _KEY_MAPPING = {
 
 
 class _Images:
-    def __init__(self):
+    @classmethod
+    def initialize(cls):
+        return cls(load(_SNAKE_IMAGE), load(_FOOD_IMAGE))
+
+    def __init__(self, snake, food):
         self.snake = load(_SNAKE_IMAGE)
         self.food = load(_FOOD_IMAGE)
 
@@ -40,7 +44,7 @@ class _Sprites:
 
     @classmethod
     def initialize(cls):
-        return cls(_Images(), [], None)
+        return cls(_Images.initialize(), [], None)
 
     def __init__(self, images, snake, food):
         self._images = images
@@ -84,11 +88,13 @@ class _Window:
 
     @classmethod
     def initialize(cls, board):
-        return cls(board, _Sprites.initialize())
+        window_size = cls._window_size(board.size)
+        window = Window(window_size.x, window_size.y, _WINDOW_TITLE)
+        sprites = _Sprites.initialize()
+        return cls(window, sprites)
 
-    def __init__(self, board, sprites):
-        window_size = self._window_size(board.size)
-        self._window = Window(window_size.x, window_size.y, _WINDOW_TITLE)
+    def __init__(self, window, sprites):
+        self._window = window
         self._sprites = sprites
 
     def redraw(self):
@@ -109,8 +115,12 @@ class _Window:
 
 
 class _EventBinding:
-    def __init__(self, window):
-        self._binding = {}
+    @classmethod
+    def initialize(cls, window):
+        return cls({}, window)
+
+    def __init__(self, binding, window):
+        self._binding = binding
         self._window = window
 
     def bind(self, event_creator):
@@ -138,25 +148,25 @@ def _tiles_to_pixels(tiles):
 
 class _EventCreator:
     def __init__(self, window, logic_events):
-        self.window = window
-        self.logic_events = logic_events
+        self._window = window
+        self._logic_events = logic_events
 
     def interval(self, current_state):
         def interval(dt):
-            return self.logic_events.tick(current_state)
+            return self._logic_events.tick(current_state)
 
         return interval
 
     def draw(self):
         def draw():
-            self.window.redraw()
+            self._window.redraw()
 
         return draw
 
     def on_key_press(self, current_state):
         def on_key_press(symbol, modifier):
             try:
-                logic_event = getattr(self.logic_events, _KEY_MAPPING[symbol])
+                logic_event = getattr(self._logic_events, _KEY_MAPPING[symbol])
             except KeyError:
                 return current_state
             else:
@@ -167,7 +177,7 @@ class _EventCreator:
 
 def init(board, snake_speed, initial_state, logic_events):
     window = _Window.initialize(board)
-    binding = _EventBinding(window)
+    binding = _EventBinding.initialize(window)
     creator = _EventCreator(window, logic_events)
 
     window.bind_events(creator.draw(), binding.bind(creator.on_key_press))
