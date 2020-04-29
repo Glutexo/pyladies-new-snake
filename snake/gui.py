@@ -7,8 +7,8 @@ from pyglet.sprite import Sprite
 from pyglet.window import Window
 from pyglet.window.key import DOWN, LEFT, RIGHT, UP
 
-from snake.gui.resources import resource_path
-from snake.gui.resources import Resources
+from snake.resources import resource_path
+from snake.resources import Resources
 
 
 __all__ = ["init"]
