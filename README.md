@@ -27,6 +27,12 @@ to leverage some interesting concepts.
 
 There are no tests. (Yet?) Shame on me!
 
+## Code style ##
+
+- No global or outer variable references. Only function arguments (immediate or closure)
+  can be referenced. For the sake of readability it’s ok to reference a _fact_
+  represented by an immutable global/class constant.
+
 ## License ##
 
 [MIT License](LICENSE.md)

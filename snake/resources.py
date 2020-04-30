@@ -12,12 +12,5 @@ class Resources(Enum):
     food = "apple.png"
 
 
-class _ResourcePathBuilder:
-    def __init__(self, path):
-        self.path = path
-
-    def __call__(self, resource):
-        return join(self.path, resource.value)
-
-
-resource_path = _ResourcePathBuilder(_RESOURCES_PATH)
+def resource_path(path):
+    return join(_RESOURCES_PATH, path)
