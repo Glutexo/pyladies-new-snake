@@ -1,15 +1,14 @@
 from collections import namedtuple
 from itertools import chain
+
 from pyglet.app import run
 from pyglet.clock import schedule_interval
-from pyglet.image import load
 from pyglet.sprite import Sprite
 from pyglet.window import Window
 from pyglet.window.key import DOWN, LEFT, RIGHT, UP
 
+from snake.gui.images import load_all
 from snake.resources import resource_path
-from snake.resources import Resources
-
 
 __all__ = ["init"]
 
@@ -27,18 +26,8 @@ _KEY_MAPPING = {
 }
 
 
-def load_resource_image(resource):
-    return load(resource_path(resource))
-
-
-class _Images:
-    @classmethod
-    def initialize(cls):
-        return cls(load_resource_image(Resources.snake), load_resource_image(Resources.food))
-
-    def __init__(self, snake, food):
-        self.snake = snake
-        self.food = food
+def _load_images():
+    return load_all(resource_path)
 
 
 class _Sprites:
@@ -48,7 +37,7 @@ class _Sprites:
 
     @classmethod
     def initialize(cls):
-        return cls(_Images.initialize(), [], None)
+        return cls(_load_images(), [], None)
 
     def __init__(self, images, snake, food):
         self._images = images
