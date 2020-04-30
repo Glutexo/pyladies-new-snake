@@ -2,7 +2,7 @@ from enum import Enum
 
 from os.path import join
 
-__all__ = "resource_path"
+__all__ = ("resource_path",)
 
 _RESOURCES_PATH = "resources"
 
