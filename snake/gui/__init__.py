@@ -3,11 +3,11 @@ from itertools import chain
 
 from pyglet.app import run
 from pyglet.clock import schedule_interval
-from pyglet.sprite import Sprite
 from pyglet.window import Window
 from pyglet.window.key import DOWN, LEFT, RIGHT, UP
 
-from snake.gui.images import load_all
+from snake.gui.pyglet import load_images
+from snake.gui.pyglet import sprite
 from snake.resources import resource_path
 
 __all__ = ["init"]
@@ -27,7 +27,7 @@ _KEY_MAPPING = {
 
 
 def _load_images():
-    return load_all(resource_path)
+    return load_images(resource_path)
 
 
 class _Sprites:
@@ -50,10 +50,10 @@ class _Sprites:
 
     def update(self, state):
         sprites = self._ensure(state)
-        sprites.position(state)
+        sprites._position(state)
         return sprites
 
-    def position(self, state):
+    def _position(self, state):
         snake = zip(self._snake, state.snake)
         food = ((self._food, state.food),)
         for sprite, pos in chain(snake, food):
@@ -63,10 +63,10 @@ class _Sprites:
         sprites_to_add = []
         num_sprites_to_add = len(state.snake) - len(self._snake)
         if num_sprites_to_add > 0:  # _Snake can only grow. No need to handle negatives.
-            sprites_to_add.append(Sprite(self._images.snake))
+            sprites_to_add.append(sprite(self._images.snake))
 
         snake = self._snake + sprites_to_add
-        food = self._food or Sprite(self._images.food)
+        food = self._food or sprite(self._images.food)
 
         return _Sprites(self._images, snake, food)
 
