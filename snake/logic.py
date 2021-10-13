@@ -43,8 +43,7 @@ class _BoardPos(_Tiles):
     def move(self, direction):
         x = self.x + direction.x
         y = self.y + direction.y
-        cls = type(self)
-        return cls(x, y)
+        return _BoardPos(x, y)
 
 
 class _Direction(namedtuple("_Direction", ("x", "y"))):
@@ -53,8 +52,7 @@ class _Direction(namedtuple("_Direction", ("x", "y"))):
         return cls(*_INITIAL_DIRECTION)
 
     def opposite(self):
-        cls = type(self)
-        return cls(-self.x, -self.y)
+        return _Direction(-self.x, -self.y)
 
 
 class _Snake:
@@ -85,12 +83,10 @@ class _Snake:
 
     def extend(self, direction):
         new_head = self.head.move(direction)
-        cls = type(self)
-        return cls([new_head] + self.pos)
+        return _Snake([new_head] + self.pos)
 
     def contract(self):
-        cls = type(self)
-        return cls(self.pos[:-1])
+        return _Snake(self.pos[:-1])
 
 
 class _Tick(namedtuple("_Tick", ("board",))):
@@ -159,12 +155,10 @@ class State(
         return cls(snake, food, direction, direction)
 
     def tick(self, snake, food):
-        cls = type(self)
-        return cls(snake, food, self.planned_direction, self.planned_direction)
+        return State(snake, food, self.planned_direction, self.planned_direction)
 
     def turn(self, direction):
-        cls = type(self)
-        return cls(self.snake, self.food, self.current_direction, direction)
+        return State(self.snake, self.food, self.current_direction, direction)
 
 
 class Events:
